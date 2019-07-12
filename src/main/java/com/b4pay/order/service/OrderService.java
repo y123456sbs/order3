@@ -38,6 +38,12 @@ public class OrderService {
     @Autowired
     private CountDao countDao;
 
+    private static final String NUMBER = "number";
+    private static final String ZODIAC = "zodiac";
+    private static final String SIZE = "size";
+    private static final String COLOR = "color";
+    private static final String SD = "sd";
+
 
     /**
      * 查询所有
@@ -57,7 +63,7 @@ public class OrderService {
      * 添加
      */
     @Transactional
-    public void add(Order order,Date date) {
+    public void add(Order order, Date date) {
         //设置id
         order.setId(idWorker.nextId() + "");
 
@@ -83,7 +89,7 @@ public class OrderService {
         if (order.getNumberSeven() != null && !"".equals(order.getNumberSeven())) {
             nums++;
         }
-        BigDecimal money = new BigDecimal(nums*10);
+        BigDecimal money = new BigDecimal(nums * 10);
 
         order.setMoney(money);
         order.setCreateTime(date);
@@ -110,7 +116,7 @@ public class OrderService {
     /**
      * 查找是否当天重复下注
      */
-    public Boolean findAll(String agencyId, Integer period,Date date) {
+    public Boolean findAll(String agencyId, Integer period, String type, Date date) {
         List<Order> orderList = orderDao.findAll(new Specification<Order>() {
             @Override
             public Predicate toPredicate(Root<Order> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder cb) {
@@ -124,6 +130,10 @@ public class OrderService {
                     list.add(cb.equal(root.get("period").as(Integer.class), period));
                 }
 
+                if (type != null) {
+                    list.add(cb.equal(root.get("type").as(String.class), type));
+                }
+
                 Predicate[] p = new Predicate[list.size()];
                 return cb.and(list.toArray(p));
             }
@@ -132,7 +142,7 @@ public class OrderService {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String orderDate = simpleDateFormat.format(order.getCreateTime());
             String newOrderDate = simpleDateFormat.format(date);
-            if (orderDate.equals(newOrderDate)){
+            if (orderDate.equals(newOrderDate)) {
                 return false;
             }
         }
@@ -183,6 +193,21 @@ public class OrderService {
             }
         });
 
+        this.save(orderList, NUMBER, period);
+        this.save(orderList, ZODIAC, period);
+        this.save(orderList, SIZE, period);
+        this.save(orderList, COLOR, period);
+        this.save(orderList, SD, period);
+
+
+    }
+
+    public List<Order> findByAgencyId(String agecncyId, Integer period) {
+        List<Order> orderList = orderDao.findByAgencyIdGreaterThanOrderByPeriodDesc(agecncyId, period);
+        return orderList;
+    }
+
+    private void save(List<Order> orderList, String type, Integer period) {
         //统计期数金额
         BigDecimal countMoney = new BigDecimal(0);
         BigDecimal numberOneMoney = new BigDecimal(0);
@@ -194,34 +219,39 @@ public class OrderService {
         BigDecimal numberSevenMoney = new BigDecimal(0);
 
         for (Order order : orderList) {
-            BigDecimal money = order.getMoney();
-            if (money != null) {
-                countMoney = countMoney.add(money);
-            }
-            if (order.getNumberOne() != null){
-                numberOneMoney = numberOneMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberTwo() != null){
-                numberTwoMoney = numberTwoMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberThree() != null){
-                numberThreeMoney = numberThreeMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberFour() != null){
-                numberFourMoney = numberFourMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberFive() != null){
-                numberFiveMoney = numberFiveMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberSix() != null){
-                numberSixMoney = numberSixMoney.add(new BigDecimal("10"));
-            }
-            if (order.getNumberSeven() != null){
-                numberSevenMoney = numberSevenMoney.add(new BigDecimal("10"));
+            //判断类型
+            if (order.getType().equals(type)) {
+                BigDecimal money = order.getMoney();
+                if (money != null) {
+                    countMoney = countMoney.add(money);
+                }
+                if (order.getNumberOne() != null) {
+                    numberOneMoney = numberOneMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberTwo() != null) {
+                    numberTwoMoney = numberTwoMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberThree() != null) {
+                    numberThreeMoney = numberThreeMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberFour() != null) {
+                    numberFourMoney = numberFourMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberFive() != null) {
+                    numberFiveMoney = numberFiveMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberSix() != null) {
+                    numberSixMoney = numberSixMoney.add(new BigDecimal("10"));
+                }
+                if (order.getNumberSeven() != null) {
+                    numberSevenMoney = numberSevenMoney.add(new BigDecimal("10"));
+                }
             }
         }
 
-        Count count = countDao.queryByPeriod(period);
+        Count count = countDao.queryByPeriod(period, type);
+
+        String id = idWorker.nextId() + "";
         //存在，更新
         if (count != null) {
             count.setCountMoney(countMoney);
@@ -232,10 +262,12 @@ public class OrderService {
             count.setNumberFiveTotalMoney(numberFiveMoney);
             count.setNumberSixTotalMoney(numberSixMoney);
             count.setNumberSevenTotalMoney(numberSevenMoney);
+            count.setType(type);
             countDao.save(count);
         } else {
             //不存在，新建
             count = new Count();
+            count.setId(id);
             count.setPeriod(period);
             count.setCountMoney(countMoney);
             count.setNumberOneTotalMoney(numberOneMoney);
@@ -245,12 +277,8 @@ public class OrderService {
             count.setNumberFiveTotalMoney(numberFiveMoney);
             count.setNumberSixTotalMoney(numberSixMoney);
             count.setNumberSevenTotalMoney(numberSevenMoney);
+            count.setType(type);
             countDao.save(count);
         }
-    }
-
-    public List<Order> findByAgencyId(String agecncyId,Integer period) {
-        List<Order> orderList = orderDao.findByAgencyIdGreaterThanOrderByPeriodDesc(agecncyId,period);
-        return orderList;
     }
 }

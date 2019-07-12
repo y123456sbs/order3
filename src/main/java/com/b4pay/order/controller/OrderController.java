@@ -38,8 +38,9 @@ public class OrderController {
         try {
             String agencyId = order.getAgencyId();
             Integer period = order.getPeriod();
+            String type = order.getType();
             Date date = new Date();
-            boolean findOrder = orderService.findAll(agencyId, period,date);
+            boolean findOrder = orderService.findAll(agencyId, period,type,date);
             if (findOrder){
                 orderService.add(order,date);
                 logger.info(simpleDateFormat.format(date) + " " + agencyId + "下单成功");

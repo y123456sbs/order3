@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 public class Count implements Serializable {
 
     @Id
+    private String id;
+
     private Integer period;
 
     private BigDecimal numberOneTotalMoney;
@@ -33,10 +35,13 @@ public class Count implements Serializable {
 
     private BigDecimal countMoney;
 
+    private String type;
+
     public Count() {
     }
 
-    public Count(Integer period, BigDecimal numberOneTotalMoney, BigDecimal numberTwoTotalMoney, BigDecimal numberThreeTotalMoney, BigDecimal numberFourTotalMoney, BigDecimal numberFiveTotalMoney, BigDecimal numberSixTotalMoney, BigDecimal numberSevenTotalMoney, BigDecimal countMoney) {
+    public Count(String id, Integer period, BigDecimal numberOneTotalMoney, BigDecimal numberTwoTotalMoney, BigDecimal numberThreeTotalMoney, BigDecimal numberFourTotalMoney, BigDecimal numberFiveTotalMoney, BigDecimal numberSixTotalMoney, BigDecimal numberSevenTotalMoney, BigDecimal countMoney, String type) {
+        this.id = id;
         this.period = period;
         this.numberOneTotalMoney = numberOneTotalMoney;
         this.numberTwoTotalMoney = numberTwoTotalMoney;
@@ -46,6 +51,23 @@ public class Count implements Serializable {
         this.numberSixTotalMoney = numberSixTotalMoney;
         this.numberSevenTotalMoney = numberSevenTotalMoney;
         this.countMoney = countMoney;
+        this.type = type;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public BigDecimal getNumberOneTotalMoney() {

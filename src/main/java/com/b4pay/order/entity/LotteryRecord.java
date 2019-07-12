@@ -43,10 +43,14 @@ public class LotteryRecord {
     //@JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    private String type;
+
+
     public LotteryRecord() {
     }
 
-    public LotteryRecord(String id, Integer period, String agencyId, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date createTime) {
+
+    public LotteryRecord(String id, Integer period, String agencyId, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date createTime, String type) {
         this.id = id;
         this.period = period;
         this.agencyId = agencyId;
@@ -59,6 +63,15 @@ public class LotteryRecord {
         this.numberSevenMoney = numberSevenMoney;
         this.totalMoney = totalMoney;
         this.createTime = createTime;
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getCreateTime() {

@@ -44,6 +44,8 @@ public class Order implements Serializable {
 
     private Date createTime;
 
+    private String type; // 类型
+
 
 
 
@@ -51,7 +53,7 @@ public class Order implements Serializable {
     public Order() {
     }
 
-    public Order(String id, String agencyId, Integer period, Integer numberOne, Integer numberTwo, Integer numberThree, Integer numberFour, Integer numberFive, Integer numberSix, Integer numberSeven, BigDecimal money, Date createTime) {
+    public Order(String id, String agencyId, Integer period, Integer numberOne, Integer numberTwo, Integer numberThree, Integer numberFour, Integer numberFive, Integer numberSix, Integer numberSeven, BigDecimal money, Date createTime, String type) {
         this.id = id;
         this.agencyId = agencyId;
         this.period = period;
@@ -64,6 +66,15 @@ public class Order implements Serializable {
         this.numberSeven = numberSeven;
         this.money = money;
         this.createTime = createTime;
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getCreateTime() {

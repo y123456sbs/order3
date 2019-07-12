@@ -52,13 +52,9 @@ public class LotteryResult implements Serializable {
     //@JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    private String type;
 
-
-    public LotteryResult() {
-
-    }
-
-    public LotteryResult(Integer period, Integer numberOne, BigDecimal numberOneMoney, Integer numberTwo, BigDecimal numberTwoMoney, Integer numberThree, BigDecimal numberThreeMoney, Integer numberFour, BigDecimal numberFourMoney, Integer numberFive, BigDecimal numberFiveMoney, Integer numberSix, BigDecimal numberSixMoney, Integer numberSeven, BigDecimal numberSevenMoney, Date createTime) {
+    public LotteryResult(Integer period, Integer numberOne, BigDecimal numberOneMoney, Integer numberTwo, BigDecimal numberTwoMoney, Integer numberThree, BigDecimal numberThreeMoney, Integer numberFour, BigDecimal numberFourMoney, Integer numberFive, BigDecimal numberFiveMoney, Integer numberSix, BigDecimal numberSixMoney, Integer numberSeven, BigDecimal numberSevenMoney, Date createTime, String type) {
         this.period = period;
         this.numberOne = numberOne;
         this.numberOneMoney = numberOneMoney;
@@ -75,6 +71,19 @@ public class LotteryResult implements Serializable {
         this.numberSeven = numberSeven;
         this.numberSevenMoney = numberSevenMoney;
         this.createTime = createTime;
+        this.type = type;
+    }
+
+    public LotteryResult() {
+
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getCreateTime() {

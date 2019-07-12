@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface CountDao extends JpaRepository<Count,Integer>, JpaSpecificationExecutor<Count> {
 
-    @Query(value = "from Count where period = ?1")
-    public Count queryByPeriod(Integer period);
+    @Query(value = "from Count where period = ?1 and type = ?2")
+    public Count queryByPeriod(Integer period,String type);
 }
