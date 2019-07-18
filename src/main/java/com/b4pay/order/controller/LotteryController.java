@@ -10,10 +10,8 @@ import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -31,7 +29,6 @@ public class LotteryController {
     private static final Logger logger = LoggerFactory.getLogger(LotteryController.class);
 
 
-
     @Autowired
     private LotteryService lotteryService;
 
@@ -42,14 +39,17 @@ public class LotteryController {
     private SimpleDateFormat simpleDateFormat;
 
     //开奖
-    @RequestMapping(value = "/open", method = RequestMethod.GET)
-    public Result lottery(Integer period) {
+    @RequestMapping(value = "/open", method = RequestMethod.POST)
+    @Transactional
+    public Result lottery(@RequestBody Map<String, String> map) {
+        Integer period = Integer.valueOf(map.get("period"));
         try {
+
             Lottery lottery = lotteryService.queryByPeriod(period);
             Date date = new Date();
             if (lottery != null) {
-                logger.info(simpleDateFormat.format(new Date())+"  第"+period+"期已开奖");
-                return new Result(false, StatusCode.ERROR, "第"+period+"期已开奖");
+                logger.info(simpleDateFormat.format(new Date()) + "  第" + period + "期已开奖");
+                return new Result(false, StatusCode.ERROR, "第" + period + "期已开奖");
             }
             // 生成 7 个不重复的随机数set 用来保存这些随机数
             RandomUtils randomUtils = new RandomUtils();
@@ -59,19 +59,22 @@ public class LotteryController {
             }
             List<Integer> numsList = new ArrayList<>(numsSet);
             //保存
-            lotteryService.save(period, numsList,date);
+            lotteryService.save(period, numsList, date);
 
             //匹配
             List<Order> orderList = orderService.findAll(null, period);
-            lotteryService.match(period, numsList, orderList,date);
-            logger.info(simpleDateFormat.format(new Date())+"  第"+period+"期开奖成功");
-            return new Result(true, StatusCode.OK, "第"+period+"期开奖成功");
+            lotteryService.match(period, numsList, orderList, date, map);
+
+            //统计个人中奖信息
+
+
+            logger.info(simpleDateFormat.format(new Date()) + "  第" + period + "期开奖成功");
+            return new Result(true, StatusCode.OK, "第" + period + "期开奖成功");
         } catch (Exception e) {
-            logger.error(simpleDateFormat.format(new Date())+"  第"+period+"期开奖失败"+e.getMessage());
-            return new Result(false, StatusCode.ERROR, "第"+period+"期开奖失败");
+            logger.error(simpleDateFormat.format(new Date()) + "  第" + period + "期开奖失败" + e.getMessage());
+            e.printStackTrace();
+            return new Result(false, StatusCode.ERROR, "第" + period + "期开奖失败");
         }
-
-
 
 
     }

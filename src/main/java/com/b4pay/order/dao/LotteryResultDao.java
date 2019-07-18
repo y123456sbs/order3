@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 
-public interface LotteryResultDao extends JpaRepository<LotteryResult,Integer>, JpaSpecificationExecutor<LotteryResult> {
+public interface LotteryResultDao extends JpaRepository<LotteryResult,String>, JpaSpecificationExecutor<LotteryResult> {
 
 }

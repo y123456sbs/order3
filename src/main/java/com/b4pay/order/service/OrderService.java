@@ -68,25 +68,25 @@ public class OrderService {
         order.setId(idWorker.nextId() + "");
 
         Integer nums = 0;
-        if (order.getNumberOne() != null && !"".equals(order.getNumberOne())) {
+        if (order.getNumberOne() != null && order.getNumberOne() != 0 && !"".equals(order.getNumberOne())) {
             nums++;
         }
-        if (order.getNumberTwo() != null && !"".equals(order.getNumberTwo())) {
+        if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && !"".equals(order.getNumberTwo())) {
             nums++;
         }
-        if (order.getNumberThree() != null && !"".equals(order.getNumberThree())) {
+        if (order.getNumberThree() != null && order.getNumberThree() != 0 && !"".equals(order.getNumberThree())) {
             nums++;
         }
-        if (order.getNumberFour() != null && !"".equals(order.getNumberFour())) {
+        if (order.getNumberFour() != null && order.getNumberFour() != 0 && !"".equals(order.getNumberFour())) {
             nums++;
         }
-        if (order.getNumberFive() != null && !"".equals(order.getNumberFive())) {
+        if (order.getNumberFive() != null && order.getNumberFive() != 0 && !"".equals(order.getNumberFive())) {
             nums++;
         }
-        if (order.getNumberSix() != null && !"".equals(order.getNumberSix())) {
+        if (order.getNumberSix() != null && order.getNumberSix() != 0 && !"".equals(order.getNumberSix())) {
             nums++;
         }
-        if (order.getNumberSeven() != null && !"".equals(order.getNumberSeven())) {
+        if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && !"".equals(order.getNumberSeven())) {
             nums++;
         }
         BigDecimal money = new BigDecimal(nums * 10);
@@ -225,25 +225,25 @@ public class OrderService {
                 if (money != null) {
                     countMoney = countMoney.add(money);
                 }
-                if (order.getNumberOne() != null) {
+                if (order.getNumberOne() != null && order.getNumberOne() != 0) {
                     numberOneMoney = numberOneMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberTwo() != null) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0) {
                     numberTwoMoney = numberTwoMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberThree() != null) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0) {
                     numberThreeMoney = numberThreeMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberFour() != null) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0) {
                     numberFourMoney = numberFourMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberFive() != null) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0) {
                     numberFiveMoney = numberFiveMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberSix() != null) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0) {
                     numberSixMoney = numberSixMoney.add(new BigDecimal("10"));
                 }
-                if (order.getNumberSeven() != null) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0) {
                     numberSevenMoney = numberSevenMoney.add(new BigDecimal("10"));
                 }
             }

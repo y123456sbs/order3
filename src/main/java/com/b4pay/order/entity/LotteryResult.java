@@ -19,6 +19,8 @@ import java.util.Date;
 public class LotteryResult implements Serializable {
 
     @Id
+    private String id;
+
     private Integer period;
 
     private Integer numberOne;
@@ -54,7 +56,8 @@ public class LotteryResult implements Serializable {
 
     private String type;
 
-    public LotteryResult(Integer period, Integer numberOne, BigDecimal numberOneMoney, Integer numberTwo, BigDecimal numberTwoMoney, Integer numberThree, BigDecimal numberThreeMoney, Integer numberFour, BigDecimal numberFourMoney, Integer numberFive, BigDecimal numberFiveMoney, Integer numberSix, BigDecimal numberSixMoney, Integer numberSeven, BigDecimal numberSevenMoney, Date createTime, String type) {
+    public LotteryResult(String id, Integer period, Integer numberOne, BigDecimal numberOneMoney, Integer numberTwo, BigDecimal numberTwoMoney, Integer numberThree, BigDecimal numberThreeMoney, Integer numberFour, BigDecimal numberFourMoney, Integer numberFive, BigDecimal numberFiveMoney, Integer numberSix, BigDecimal numberSixMoney, Integer numberSeven, BigDecimal numberSevenMoney, Date createTime, String type) {
+        this.id = id;
         this.period = period;
         this.numberOne = numberOne;
         this.numberOneMoney = numberOneMoney;
@@ -72,6 +75,14 @@ public class LotteryResult implements Serializable {
         this.numberSevenMoney = numberSevenMoney;
         this.createTime = createTime;
         this.type = type;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public LotteryResult() {
