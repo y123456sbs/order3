@@ -26,6 +26,8 @@ public class GradeRecord {
 
     private String gradeId;
 
+    private String gradeName;
+
     private BigDecimal numberOneMoney;
 
     private BigDecimal numberTwoMoney;
@@ -47,6 +49,25 @@ public class GradeRecord {
     private String type;
 
     public GradeRecord() {
+    }
+
+    public GradeRecord(String id, Integer period, String agencyId, String grade, String gradeId, String gradeName, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date createTime, String type) {
+        this.id = id;
+        this.period = period;
+        this.agencyId = agencyId;
+        this.grade = grade;
+        this.gradeId = gradeId;
+        this.gradeName = gradeName;
+        this.numberOneMoney = numberOneMoney;
+        this.numberTwoMoney = numberTwoMoney;
+        this.numberThreeMoney = numberThreeMoney;
+        this.numberFourMoney = numberFourMoney;
+        this.numberFiveMoney = numberFiveMoney;
+        this.numberSixMoney = numberSixMoney;
+        this.numberSevenMoney = numberSevenMoney;
+        this.totalMoney = totalMoney;
+        this.createTime = createTime;
+        this.type = type;
     }
 
     public String getId() {
@@ -169,21 +190,11 @@ public class GradeRecord {
         this.type = type;
     }
 
-    public GradeRecord(String id, Integer period, String agencyId, String grade, String gradeId, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date createTime, String type) {
-        this.id = id;
-        this.period = period;
-        this.agencyId = agencyId;
-        this.grade = grade;
-        this.gradeId = gradeId;
-        this.numberOneMoney = numberOneMoney;
-        this.numberTwoMoney = numberTwoMoney;
-        this.numberThreeMoney = numberThreeMoney;
-        this.numberFourMoney = numberFourMoney;
-        this.numberFiveMoney = numberFiveMoney;
-        this.numberSixMoney = numberSixMoney;
-        this.numberSevenMoney = numberSevenMoney;
-        this.totalMoney = totalMoney;
-        this.createTime = createTime;
-        this.type = type;
+    public String getGradeName() {
+        return gradeName;
+    }
+
+    public void setGradeName(String gradeName) {
+        this.gradeName = gradeName;
     }
 }

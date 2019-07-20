@@ -1,10 +1,9 @@
 package com.b4pay.order.service;
 
-import com.b4pay.order.dao.CountDao;
-import com.b4pay.order.dao.LotteryDao;
-import com.b4pay.order.dao.LotteryRecordDao;
-import com.b4pay.order.dao.LotteryResultDao;
+import com.alibaba.fastjson.JSONObject;
+import com.b4pay.order.dao.*;
 import com.b4pay.order.entity.*;
+import com.b4pay.order.utils.HttpClientUtil;
 import com.b4pay.order.utils.IdWorker;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import java.util.Map;
  * @Version 2.1
  **/
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class LotteryService {
 
     @Autowired
@@ -43,11 +43,18 @@ public class LotteryService {
     @Autowired
     private SimpleDateFormat simpleDateFormat;
 
+    @Autowired
+    private GradeRecordDao gradeRecordDao;
+
     private static final String NUMBER = "number";
     private static final String ZODIAC = "zodiac";
     private static final String SIZE = "size";
     private static final String COLOR = "color";
     private static final String SD = "sd";
+
+    private static final String URL = "http://192.168.101.69:8083/data/app/getAgencyInfo";
+
+
 
     /**
      * 查询所有
@@ -82,27 +89,31 @@ public class LotteryService {
         lotteryDao.save(lottery);
     }
 
-    @Transactional
-    public void match(Integer period, List<Integer> numsList, List<Order> orderList, Date date, Map<String,String> map) {
-        //保存号码奖池
-        this.saveNumberLotteryResult(period, numsList, orderList, date,map);
-        //保存生肖奖池
-        this.saveZodiacLotteryResult(period, numsList, orderList, date,map);
 
-        //保存颜色奖池 红 蓝 绿
-        this.saveColorLotteryResult(period, numsList, orderList, date,map);
+    public void match(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
 
-        //保存单双奖池 1是双 2是单
-        this.saveSDLotteryResult(period, numsList, orderList, date,map);
 
-        //保存大小奖池 1-24小 26-49大
-        this.saveSizeLotteryResult(period, numsList, orderList, date,map);
+            //保存号码奖池
+            this.saveNumberLotteryResult(period, numsList, orderList, date);
+
+            //保存生肖奖池
+            this.saveZodiacLotteryResult(period, numsList, orderList, date);
+
+            //保存颜色奖池 红1 蓝2 绿3
+            this.saveColorLotteryResult(period, numsList, orderList, date);
+
+            //保存单双奖池 1是双 2是单
+            this.saveSDLotteryResult(period, numsList, orderList, date);
+
+            //保存大小奖池 1-24小 26-49大
+            this.saveSizeLotteryResult(period, numsList, orderList, date);
+
 
 
     }
 
     //保存生肖奖池
-    private void saveZodiacLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date,Map<String,String> map) {
+    private void saveZodiacLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
         Integer num1 = numsList.get(0);
         Integer num2 = numsList.get(1);
         Integer num3 = numsList.get(2);
@@ -137,22 +148,22 @@ public class LotteryService {
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && this.judgeZodiac(num1) == order.getNumberOne()) {
                     count1 = count1.add(new BigDecimal("1"));
                 }
-                if (order.getNumberTwo() != null && order.getNumberOne() != 0 && this.judgeZodiac(num2) == order.getNumberTwo()) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && this.judgeZodiac(num2) == order.getNumberTwo()) {
                     count2 = count2.add(new BigDecimal("1"));
                 }
-                if (order.getNumberThree() != null && order.getNumberOne() != 0 && this.judgeZodiac(num3) == order.getNumberThree()) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0 && this.judgeZodiac(num3) == order.getNumberThree()) {
                     count3 = count3.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFour() != null && order.getNumberOne() != 0 && this.judgeZodiac(num4) == order.getNumberFour()) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && this.judgeZodiac(num4) == order.getNumberFour()) {
                     count4 = count4.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFive() != null && order.getNumberOne() != 0 && this.judgeZodiac(num5) == order.getNumberFive()) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && this.judgeZodiac(num5) == order.getNumberFive()) {
                     count5 = count5.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSix() != null && order.getNumberOne() != 0 && this.judgeZodiac(num6) == order.getNumberSix()) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && this.judgeZodiac(num6) == order.getNumberSix()) {
                     count6 = count6.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSeven() != null && order.getNumberOne() != 0 && this.judgeZodiac(num7) == order.getNumberSeven()) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && this.judgeZodiac(num7) == order.getNumberSeven()) {
                     count7 = count7.add(new BigDecimal("1"));
                 }
             }
@@ -173,22 +184,22 @@ public class LotteryService {
             numberOneMoney = count.getNumberOneTotalMoney().divide(count1, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count2.equals(BigDecimal.ZERO)) {
-            numberTwoMoney = count.getNumberOneTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
+            numberTwoMoney = count.getNumberTwoTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count3.equals(BigDecimal.ZERO)) {
-            numberThreeMoney = count.getNumberOneTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
+            numberThreeMoney = count.getNumberThreeTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count4.equals(BigDecimal.ZERO)) {
-            numberFourMoney = count.getNumberOneTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
+            numberFourMoney = count.getNumberFourTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count5.equals(BigDecimal.ZERO)) {
-            numberFiveMoney = count.getNumberOneTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
+            numberFiveMoney = count.getNumberFiveTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count6.equals(BigDecimal.ZERO)) {
-            numberSixMoney = count.getNumberOneTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
+            numberSixMoney = count.getNumberSixTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count7.equals(BigDecimal.ZERO)) {
-            numberSevenMoney = count.getNumberOneTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
+            numberSevenMoney = count.getNumberSevenTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
         }
 
 
@@ -204,9 +215,10 @@ public class LotteryService {
 
         BigDecimal discount = new BigDecimal("0.8");
 
-        BigDecimal gradeThree = new BigDecimal("0.7");
-        BigDecimal gradeTwo = new BigDecimal("0.3");
-        BigDecimal gradeOne = new BigDecimal("0.5");
+        BigDecimal partnerCount = new BigDecimal("0.05");
+        BigDecimal gradeThree = new BigDecimal("0.05");
+        BigDecimal gradeTwo = new BigDecimal("0.03");
+        BigDecimal gradeOne = new BigDecimal("0.07");
 
 
 
@@ -221,39 +233,60 @@ public class LotteryService {
                 lotteryRecord.setType(ZODIAC);
                 BigDecimal totalMoney = new BigDecimal("0");
 
-                //TODO 查找三级
+                //查找三级
+                Map<String, String> map = this.findGradeByAgencyId(order.getAgencyId());
 
                 //保存三级
+
                 GradeRecord gradeThreeUser = null;
                 GradeRecord gradeTwoUser = null;
                 GradeRecord gradeOneUser = null;
 
-                if (map.get("gradeThree") != null && !"".equals(map.get("gradeThree"))){
+                GradeRecord partner = null;
+
+                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                    partner = new GradeRecord();
+                    partner.setId(idWorker.nextId() + "");
+                    partner.setPeriod(period);
+                    partner.setAgencyId(order.getAgencyId());
+                    partner.setGrade("partner");
+                    partner.setGradeId(map.get("partnerId"));
+                    partner.setGradeName(map.get("partnerName"));
+                    partner.setType(ZODIAC);
+                    partner.setCreateTime(date);
+                }
+                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
                     gradeThreeUser.setAgencyId(order.getAgencyId());
-                    gradeThreeUser.setGrade("gradeThree");
-                    gradeThreeUser.setGradeId(map.get("gradeThree"));
+                    gradeThreeUser.setGrade("gradeThreeUser");
+                    gradeThreeUser.setGradeId(map.get("gradeThreeUser"));
+                    gradeThreeUser.setGradeName(map.get("gradeThreeUserName"));
                     gradeThreeUser.setType(ZODIAC);
+                    gradeThreeUser.setCreateTime(date);
                 }
-                if (map.get("gradeTwoUser") != null && !"".equals(map.get("gradeTwoUser"))){
+                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
                     gradeTwoUser.setAgencyId(order.getAgencyId());
                     gradeTwoUser.setGrade("gradeTwoUser");
                     gradeTwoUser.setGradeId(map.get("gradeTwoUser"));
+                    gradeTwoUser.setGradeName(map.get("gradeTwoUserName"));
                     gradeTwoUser.setType(ZODIAC);
+                    gradeTwoUser.setCreateTime(date);
                 }
-                if (map.get("gradeOneUser") != null && !"".equals(map.get("gradeOneUser"))){
+                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
                     gradeOneUser.setAgencyId(order.getAgencyId());
                     gradeOneUser.setGrade("gradeOneUser");
                     gradeOneUser.setGradeId(map.get("gradeOneUser"));
+                    gradeOneUser.setGradeName(map.get("gradeOneUserName"));
                     gradeOneUser.setType(ZODIAC);
+                    gradeOneUser.setCreateTime(date);
                 }
 
 
@@ -273,6 +306,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
+                    }
 
                 }
 
@@ -291,6 +328,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberThree() != null && order.getNumberThree() != 0 && this.judgeZodiac(num3) == order.getNumberThree()) {
@@ -307,6 +348,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
 
@@ -325,6 +370,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberFive() != null && order.getNumberFive() != 0 && this.judgeZodiac(num5) == order.getNumberFive()) {
@@ -341,6 +390,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
 
@@ -359,6 +412,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && this.judgeZodiac(num7) == order.getNumberSeven()) {
@@ -376,7 +433,13 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
+                    }
                 }
+                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
                 lotteryRecordDao.save(lotteryRecord);
@@ -385,7 +448,7 @@ public class LotteryService {
     }
 
     //保存颜色奖池
-    private void saveColorLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date,Map<String,String> map) {
+    private void saveColorLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
         Integer num1 = numsList.get(0);
         Integer num2 = numsList.get(1);
         Integer num3 = numsList.get(2);
@@ -422,22 +485,22 @@ public class LotteryService {
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && this.judgeColor(num1) == order.getNumberOne()) {
                     count1 = count1.add(new BigDecimal("1"));
                 }
-                if (order.getNumberTwo() != null && order.getNumberOne() != 0 && this.judgeColor(num2) == order.getNumberTwo()) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && this.judgeColor(num2) == order.getNumberTwo()) {
                     count2 = count2.add(new BigDecimal("1"));
                 }
-                if (order.getNumberThree() != null && order.getNumberOne() != 0 && this.judgeColor(num3) == order.getNumberThree()) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0 && this.judgeColor(num3) == order.getNumberThree()) {
                     count3 = count3.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFour() != null && order.getNumberOne() != 0 && this.judgeColor(num4) == order.getNumberFour()) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && this.judgeColor(num4) == order.getNumberFour()) {
                     count4 = count4.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFive() != null && order.getNumberOne() != 0 && this.judgeColor(num5) == order.getNumberFive()) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && this.judgeColor(num5) == order.getNumberFive()) {
                     count5 = count5.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSix() != null && order.getNumberOne() != 0 && this.judgeColor(num6) == order.getNumberSix()) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && this.judgeColor(num6) == order.getNumberSix()) {
                     count6 = count6.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSeven() != null && order.getNumberOne() != 0 && this.judgeColor(num7) == order.getNumberSeven()) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && this.judgeColor(num7) == order.getNumberSeven()) {
                     count7 = count7.add(new BigDecimal("1"));
                 }
             }
@@ -458,22 +521,22 @@ public class LotteryService {
             numberOneMoney = count.getNumberOneTotalMoney().divide(count1, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count2.equals(BigDecimal.ZERO)) {
-            numberTwoMoney = count.getNumberOneTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
+            numberTwoMoney = count.getNumberTwoTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count3.equals(BigDecimal.ZERO)) {
-            numberThreeMoney = count.getNumberOneTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
+            numberThreeMoney = count.getNumberThreeTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count4.equals(BigDecimal.ZERO)) {
-            numberFourMoney = count.getNumberOneTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
+            numberFourMoney = count.getNumberFourTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count5.equals(BigDecimal.ZERO)) {
-            numberFiveMoney = count.getNumberOneTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
+            numberFiveMoney = count.getNumberFiveTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count6.equals(BigDecimal.ZERO)) {
-            numberSixMoney = count.getNumberOneTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
+            numberSixMoney = count.getNumberSixTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count7.equals(BigDecimal.ZERO)) {
-            numberSevenMoney = count.getNumberOneTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
+            numberSevenMoney = count.getNumberSevenTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
         }
 
 
@@ -490,9 +553,10 @@ public class LotteryService {
 
         BigDecimal discount = new BigDecimal("0.8");
 
-        BigDecimal gradeThree = new BigDecimal("0.7");
-        BigDecimal gradeTwo = new BigDecimal("0.3");
-        BigDecimal gradeOne = new BigDecimal("0.5");
+        BigDecimal partnerCount = new BigDecimal("0.05");
+        BigDecimal gradeThree = new BigDecimal("0.05");
+        BigDecimal gradeTwo = new BigDecimal("0.03");
+        BigDecimal gradeOne = new BigDecimal("0.07");
 
         //记录每个用户中奖金额
         for (Order order : orderList) {
@@ -505,39 +569,58 @@ public class LotteryService {
                 BigDecimal totalMoney = new BigDecimal("0");
 
                 //查找三级
+                Map<String, String> map = this.findGradeByAgencyId(order.getAgencyId());
 
                 //保存三级
                 GradeRecord gradeThreeUser = null;
                 GradeRecord gradeTwoUser = null;
                 GradeRecord gradeOneUser = null;
 
-                if (map.get("gradeThree") != null && !"".equals(map.get("gradeThree"))){
+                GradeRecord partner = null;
+
+                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                    partner = new GradeRecord();
+                    partner.setId(idWorker.nextId() + "");
+                    partner.setPeriod(period);
+                    partner.setAgencyId(order.getAgencyId());
+                    partner.setGrade("partner");
+                    partner.setGradeId(map.get("partnerId"));
+                    partner.setGradeName(map.get("partnerName"));
+                    partner.setType(COLOR);
+                    partner.setCreateTime(date);
+                }
+                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
                     gradeThreeUser.setAgencyId(order.getAgencyId());
-                    gradeThreeUser.setGrade("gradeThree");
-                    gradeThreeUser.setGradeId(map.get("gradeThree"));
+                    gradeThreeUser.setGrade("gradeThreeUser");
+                    gradeThreeUser.setGradeId(map.get("gradeThreeUser"));
+                    gradeThreeUser.setGradeName(map.get("gradeThreeUserName"));
                     gradeThreeUser.setType(COLOR);
+                    gradeThreeUser.setCreateTime(date);
                 }
-                if (map.get("gradeTwoUser") != null && !"".equals(map.get("gradeTwoUser"))){
+                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
                     gradeTwoUser.setAgencyId(order.getAgencyId());
                     gradeTwoUser.setGrade("gradeTwoUser");
                     gradeTwoUser.setGradeId(map.get("gradeTwoUser"));
+                    gradeTwoUser.setGradeName(map.get("gradeTwoUserName"));
                     gradeTwoUser.setType(COLOR);
+                    gradeTwoUser.setCreateTime(date);
                 }
-
-                if (map.get("gradeOneUser") != null && !"".equals(map.get("gradeOneUser"))){
+                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
                     gradeOneUser.setAgencyId(order.getAgencyId());
                     gradeOneUser.setGrade("gradeOneUser");
                     gradeOneUser.setGradeId(map.get("gradeOneUser"));
+                    gradeOneUser.setGradeName(map.get("gradeOneUserName"));
                     gradeOneUser.setType(COLOR);
+                    gradeOneUser.setCreateTime(date);
                 }
 
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && this.judgeColor(num1) == order.getNumberOne()) {
@@ -555,6 +638,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
+                    }
                 }
                 if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && this.judgeColor(num2) == order.getNumberTwo()) {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
@@ -570,6 +657,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
 
@@ -588,6 +679,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberFour() != null && order.getNumberFour() != 0 && this.judgeColor(num4) == order.getNumberFour()) {
@@ -604,6 +699,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
 
@@ -622,6 +721,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberSix() != null && order.getNumberSix() != 0 && this.judgeColor(num6) == order.getNumberSix()) {
@@ -638,6 +741,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
 
@@ -656,7 +763,14 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
+                    }
                 }
+
+                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
                 lotteryRecordDao.save(lotteryRecord);
@@ -665,7 +779,7 @@ public class LotteryService {
     }
 
     //保存大小奖池
-    private void saveSizeLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date,Map<String,String> map) {
+    private void saveSizeLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
         Integer num1 = numsList.get(0);
         Integer num2 = numsList.get(1);
         Integer num3 = numsList.get(2);
@@ -700,22 +814,22 @@ public class LotteryService {
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && this.judgeSize(num1) == order.getNumberOne() && num1 != 25) {
                     count1 = count1.add(new BigDecimal("1"));
                 }
-                if (order.getNumberTwo() != null && order.getNumberOne() != 0 && this.judgeSize(num2) == order.getNumberTwo() && num2 != 25) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && this.judgeSize(num2) == order.getNumberTwo() && num2 != 25) {
                     count2 = count2.add(new BigDecimal("1"));
                 }
-                if (order.getNumberThree() != null && order.getNumberOne() != 0 && this.judgeSize(num3) == order.getNumberThree() && num3 != 25) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0 && this.judgeSize(num3) == order.getNumberThree() && num3 != 25) {
                     count3 = count3.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFour() != null && order.getNumberOne() != 0 && this.judgeSize(num4) == order.getNumberFour() && num4 != 25) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && this.judgeSize(num4) == order.getNumberFour() && num4 != 25) {
                     count4 = count4.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFive() != null && order.getNumberOne() != 0 && this.judgeSize(num5) == order.getNumberFive() && num5 != 25) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && this.judgeSize(num5) == order.getNumberFive() && num5 != 25) {
                     count5 = count5.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSix() != null && order.getNumberOne() != 0 && this.judgeSize(num6) == order.getNumberSix() && num6 != 25) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && this.judgeSize(num6) == order.getNumberSix() && num6 != 25) {
                     count6 = count6.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSeven() != null && order.getNumberOne() != 0 && this.judgeSize(num7) == order.getNumberSeven() && num7 != 25) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && this.judgeSize(num7) == order.getNumberSeven() && num7 != 25) {
                     count7 = count7.add(new BigDecimal("1"));
                 }
             }
@@ -736,22 +850,22 @@ public class LotteryService {
             numberOneMoney = count.getNumberOneTotalMoney().divide(count1, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count2.equals(BigDecimal.ZERO)) {
-            numberTwoMoney = count.getNumberOneTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
+            numberTwoMoney = count.getNumberTwoTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count3.equals(BigDecimal.ZERO)) {
-            numberThreeMoney = count.getNumberOneTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
+            numberThreeMoney = count.getNumberThreeTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count4.equals(BigDecimal.ZERO)) {
-            numberFourMoney = count.getNumberOneTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
+            numberFourMoney = count.getNumberFourTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count5.equals(BigDecimal.ZERO)) {
-            numberFiveMoney = count.getNumberOneTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
+            numberFiveMoney = count.getNumberFiveTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count6.equals(BigDecimal.ZERO)) {
-            numberSixMoney = count.getNumberOneTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
+            numberSixMoney = count.getNumberSixTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count7.equals(BigDecimal.ZERO)) {
-            numberSevenMoney = count.getNumberOneTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
+            numberSevenMoney = count.getNumberSevenTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
         }
 
 
@@ -767,9 +881,10 @@ public class LotteryService {
 
         BigDecimal discount = new BigDecimal("0.8");
 
-        BigDecimal gradeThree = new BigDecimal("0.7");
-        BigDecimal gradeTwo = new BigDecimal("0.3");
-        BigDecimal gradeOne = new BigDecimal("0.5");
+        BigDecimal partnerCount = new BigDecimal("0.05");
+        BigDecimal gradeThree = new BigDecimal("0.05");
+        BigDecimal gradeTwo = new BigDecimal("0.03");
+        BigDecimal gradeOne = new BigDecimal("0.07");
 
         //记录每个用户中奖金额
         for (Order order : orderList) {
@@ -781,40 +896,60 @@ public class LotteryService {
                 lotteryRecord.setType(SIZE);
                 BigDecimal totalMoney = new BigDecimal("0");
 
-                //TODO 查找三级
+                //查找三级
+                Map<String, String> map = this.findGradeByAgencyId(order.getAgencyId());
 
                 //保存三级
                 GradeRecord gradeThreeUser = null;
                 GradeRecord gradeTwoUser = null;
                 GradeRecord gradeOneUser = null;
 
+                GradeRecord partner = null;
 
-                if (map.get("gradeThree") != null && !"".equals(map.get("gradeThree"))){
+
+                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                    partner = new GradeRecord();
+                    partner.setId(idWorker.nextId() + "");
+                    partner.setPeriod(period);
+                    partner.setAgencyId(order.getAgencyId());
+                    partner.setGrade("partner");
+                    partner.setGradeId(map.get("partnerId"));
+                    partner.setGradeName(map.get("partnerName"));
+                    partner.setType(SIZE);
+                    partner.setCreateTime(date);
+                }
+                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
                     gradeThreeUser.setAgencyId(order.getAgencyId());
-                    gradeThreeUser.setGrade("gradeThree");
-                    gradeThreeUser.setGradeId(map.get("gradeThree"));
+                    gradeThreeUser.setGrade("gradeThreeUser");
+                    gradeThreeUser.setGradeId(map.get("gradeThreeUser"));
+                    gradeThreeUser.setGradeName(map.get("gradeThreeUserName"));
                     gradeThreeUser.setType(SIZE);
+                    gradeThreeUser.setCreateTime(date);
                 }
-                if (map.get("gradeTwoUser") != null && !"".equals(map.get("gradeTwoUser"))){
+                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
                     gradeTwoUser.setAgencyId(order.getAgencyId());
                     gradeTwoUser.setGrade("gradeTwoUser");
                     gradeTwoUser.setGradeId(map.get("gradeTwoUser"));
+                    gradeTwoUser.setGradeName(map.get("gradeTwoUserName"));
                     gradeTwoUser.setType(SIZE);
+                    gradeTwoUser.setCreateTime(date);
                 }
-                if (map.get("gradeOneUser") != null && !"".equals(map.get("gradeOneUser"))){
+                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
                     gradeOneUser.setAgencyId(order.getAgencyId());
                     gradeOneUser.setGrade("gradeOneUser");
                     gradeOneUser.setGradeId(map.get("gradeOneUser"));
+                    gradeOneUser.setGradeName(map.get("gradeOneUserName"));
                     gradeOneUser.setType(SIZE);
+                    gradeOneUser.setCreateTime(date);
                 }
 
 
@@ -833,6 +968,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && this.judgeSize(num2) == order.getNumberTwo() && num2 != 25) {
@@ -850,6 +989,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
+                    }
                 }
                 if (order.getNumberThree() != null && order.getNumberThree() != 0 && this.judgeSize(num3) == order.getNumberThree() && num3 != 25) {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
@@ -865,6 +1008,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
                 if (order.getNumberFour() != null && order.getNumberFour() != 0 && this.judgeSize(num4) == order.getNumberFour() && num4 != 25) {
@@ -882,6 +1029,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
+                    }
                 }
                 if (order.getNumberFive() != null && order.getNumberFive() != 0 && this.judgeSize(num5) == order.getNumberFive() && num5 != 25) {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
@@ -898,6 +1049,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
+                    }
                 }
                 if (order.getNumberSix() != null && order.getNumberSix() != 0 && this.judgeSize(num6) == order.getNumberSix() && num6 != 25) {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
@@ -913,6 +1068,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
 
@@ -931,7 +1090,13 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
+                    }
                 }
+                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
                 lotteryRecordDao.save(lotteryRecord);
@@ -940,7 +1105,7 @@ public class LotteryService {
     }
 
     //保存单双奖池
-    private void saveSDLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date,Map<String,String> map) {
+    private void saveSDLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
         Integer num1 = numsList.get(0);
         Integer num2 = numsList.get(1);
         Integer num3 = numsList.get(2);
@@ -974,22 +1139,22 @@ public class LotteryService {
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 % 2 + 1 == order.getNumberOne() && num1 != 49) {
                     count1 = count1.add(new BigDecimal("1"));
                 }
-                if (order.getNumberTwo() != null && order.getNumberOne() != 0 && num2 % 2 + 1 == order.getNumberTwo() && num2 != 49) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && num2 % 2 + 1 == order.getNumberTwo() && num2 != 49) {
                     count2 = count2.add(new BigDecimal("1"));
                 }
-                if (order.getNumberThree() != null && order.getNumberOne() != 0 && num3 % 2 + 1 == order.getNumberThree() && num3 != 49) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0 && num3 % 2 + 1 == order.getNumberThree() && num3 != 49) {
                     count3 = count3.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFour() != null && order.getNumberOne() != 0 && num4 % 2 + 1 == order.getNumberFour() && num4 != 49) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && num4 % 2 + 1 == order.getNumberFour() && num4 != 49) {
                     count4 = count4.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFive() != null && order.getNumberOne() != 0 && num5 % 2 + 1 == order.getNumberFive() && num5 != 49) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && num5 % 2 + 1 == order.getNumberFive() && num5 != 49) {
                     count5 = count5.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSix() != null && order.getNumberOne() != 0 && num6 % 2 + 1 == order.getNumberSix() && num6 != 49) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && num6 % 2 + 1 == order.getNumberSix() && num6 != 49) {
                     count6 = count6.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSeven() != null && order.getNumberOne() != 0 && num7 % 2 + 1 == order.getNumberSeven() && num7 != 49) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && num7 % 2 + 1 == order.getNumberSeven() && num7 != 49) {
                     count7 = count7.add(new BigDecimal("1"));
                 }
             }
@@ -1011,22 +1176,22 @@ public class LotteryService {
             numberOneMoney = count.getNumberOneTotalMoney().divide(count1, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count2.equals(BigDecimal.ZERO)) {
-            numberTwoMoney = count.getNumberOneTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
+            numberTwoMoney = count.getNumberTwoTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count3.equals(BigDecimal.ZERO)) {
-            numberThreeMoney = count.getNumberOneTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
+            numberThreeMoney = count.getNumberThreeTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count4.equals(BigDecimal.ZERO)) {
-            numberFourMoney = count.getNumberOneTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
+            numberFourMoney = count.getNumberFourTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count5.equals(BigDecimal.ZERO)) {
-            numberFiveMoney = count.getNumberOneTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
+            numberFiveMoney = count.getNumberFiveTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count6.equals(BigDecimal.ZERO)) {
-            numberSixMoney = count.getNumberOneTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
+            numberSixMoney = count.getNumberSixTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count7.equals(BigDecimal.ZERO)) {
-            numberSevenMoney = count.getNumberOneTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
+            numberSevenMoney = count.getNumberSevenTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
         }
 
 
@@ -1042,9 +1207,11 @@ public class LotteryService {
 
         BigDecimal discount = new BigDecimal("0.8");
 
-        BigDecimal gradeThree = new BigDecimal("0.7");
-        BigDecimal gradeTwo = new BigDecimal("0.3");
-        BigDecimal gradeOne = new BigDecimal("0.5");
+        BigDecimal partnerCount = new BigDecimal("0.05");
+        BigDecimal gradeThree = new BigDecimal("0.05");
+        BigDecimal gradeTwo = new BigDecimal("0.03");
+        BigDecimal gradeOne = new BigDecimal("0.07");
+
 
 
         //记录每个用户中奖金额
@@ -1057,39 +1224,58 @@ public class LotteryService {
                 lotteryRecord.setType(SD);
                 BigDecimal totalMoney = new BigDecimal("0");
 
-                //TODO 查找三级
+                //查找三级
+                Map<String, String> map = this.findGradeByAgencyId(order.getAgencyId());
 
                 //保存三级
                 GradeRecord gradeThreeUser = null;
                 GradeRecord gradeTwoUser = null;
                 GradeRecord gradeOneUser = null;
+                GradeRecord partner = null;
 
-                if (map.get("gradeThree") != null && !"".equals(map.get("gradeThree"))){
+                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                    partner = new GradeRecord();
+                    partner.setId(idWorker.nextId() + "");
+                    partner.setPeriod(period);
+                    partner.setAgencyId(order.getAgencyId());
+                    partner.setGrade("partner");
+                    partner.setGradeId(map.get("partnerId"));
+                    partner.setGradeName(map.get("partnerName"));
+                    partner.setType(SD);
+                    partner.setCreateTime(date);
+                }
+                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
                     gradeThreeUser.setAgencyId(order.getAgencyId());
-                    gradeThreeUser.setGrade("gradeThree");
-                    gradeThreeUser.setGradeId(map.get("gradeThree"));
+                    gradeThreeUser.setGrade("gradeThreeUser");
+                    gradeThreeUser.setGradeId(map.get("gradeThreeUser"));
+                    gradeThreeUser.setGradeName(map.get("gradeThreeUserName"));
                     gradeThreeUser.setType(SD);
+                    gradeThreeUser.setCreateTime(date);
                 }
-                if (map.get("gradeTwoUser") != null && !"".equals(map.get("gradeTwoUser"))){
+                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
                     gradeTwoUser.setAgencyId(order.getAgencyId());
                     gradeTwoUser.setGrade("gradeTwoUser");
                     gradeTwoUser.setGradeId(map.get("gradeTwoUser"));
+                    gradeTwoUser.setGradeName(map.get("gradeTwoUserName"));
                     gradeTwoUser.setType(SD);
+                    gradeTwoUser.setCreateTime(date);
                 }
-                if (map.get("gradeOneUser") != null && !"".equals(map.get("gradeOneUser"))){
+                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
                     gradeOneUser.setAgencyId(order.getAgencyId());
                     gradeOneUser.setGrade("gradeOneUser");
                     gradeOneUser.setGradeId(map.get("gradeOneUser"));
+                    gradeOneUser.setGradeName(map.get("gradeOneUserName"));
                     gradeOneUser.setType(SD);
+                    gradeOneUser.setCreateTime(date);
                 }
 
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 % 2 + 1== order.getNumberOne() && num1 != 49) {
@@ -1106,6 +1292,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1124,6 +1314,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberThree() != null && order.getNumberThree() != 0 && num3 % 2 + 1 == order.getNumberThree() && num3 != 49) {
@@ -1140,6 +1334,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1158,6 +1356,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberFive() != null && order.getNumberFive() != 0 && num5 % 2 + 1== order.getNumberFive() && num5 != 49) {
@@ -1174,6 +1376,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1192,6 +1398,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && num7 % 2 + 1== order.getNumberSeven() && num7 != 49) {
@@ -1209,7 +1419,12 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
+                    }
                 }
+                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -1220,7 +1435,7 @@ public class LotteryService {
     }
 
     //保存号码奖池
-    private void saveNumberLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date,Map<String,String> map) {
+    private void saveNumberLotteryResult(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
         Integer num1 = numsList.get(0);
         Integer num2 = numsList.get(1);
         Integer num3 = numsList.get(2);
@@ -1257,22 +1472,22 @@ public class LotteryService {
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 == order.getNumberOne()) {
                     count1 = count1.add(new BigDecimal("1"));
                 }
-                if (order.getNumberTwo() != null && order.getNumberOne() != 0 && num2 == order.getNumberTwo()) {
+                if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && num2 == order.getNumberTwo()) {
                     count2 = count2.add(new BigDecimal("1"));
                 }
-                if (order.getNumberThree() != null && order.getNumberOne() != 0 && num3 == order.getNumberThree()) {
+                if (order.getNumberThree() != null && order.getNumberThree() != 0 && num3 == order.getNumberThree()) {
                     count3 = count3.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFour() != null && order.getNumberOne() != 0 && num4 == order.getNumberFour()) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && num4 == order.getNumberFour()) {
                     count4 = count4.add(new BigDecimal("1"));
                 }
-                if (order.getNumberFive() != null && order.getNumberOne() != 0 && num5 == order.getNumberFive()) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && num5 == order.getNumberFive()) {
                     count5 = count5.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSix() != null && order.getNumberOne() != 0 && num6 == order.getNumberSix()) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && num6 == order.getNumberSix()) {
                     count6 = count6.add(new BigDecimal("1"));
                 }
-                if (order.getNumberSeven() != null && order.getNumberOne() != 0 && num7 == order.getNumberSeven()) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && num7 == order.getNumberSeven()) {
                     count7 = count7.add(new BigDecimal("1"));
                 }
             }
@@ -1289,35 +1504,27 @@ public class LotteryService {
         BigDecimal numberSixMoney = null;
         BigDecimal numberSevenMoney = null;
 
-        BigDecimal discount = new BigDecimal("0.8");
-
-        BigDecimal gradeThree = new BigDecimal("0.7");
-        BigDecimal gradeTwo = new BigDecimal("0.3");
-        BigDecimal gradeOne = new BigDecimal("0.5");
-
-
         if (!count1.equals(BigDecimal.ZERO)) {
             numberOneMoney = count.getNumberOneTotalMoney().divide(count1, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count2.equals(BigDecimal.ZERO)) {
-            numberTwoMoney = count.getNumberOneTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
+            numberTwoMoney = count.getNumberTwoTotalMoney().divide(count2, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count3.equals(BigDecimal.ZERO)) {
-            numberThreeMoney = count.getNumberOneTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
+            numberThreeMoney = count.getNumberThreeTotalMoney().divide(count3, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count4.equals(BigDecimal.ZERO)) {
-            numberFourMoney = count.getNumberOneTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
+            numberFourMoney = count.getNumberFourTotalMoney().divide(count4, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count5.equals(BigDecimal.ZERO)) {
-            numberFiveMoney = count.getNumberOneTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
+            numberFiveMoney = count.getNumberFiveTotalMoney().divide(count5, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count6.equals(BigDecimal.ZERO)) {
-            numberSixMoney = count.getNumberOneTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
+            numberSixMoney = count.getNumberSixTotalMoney().divide(count6, 2, BigDecimal.ROUND_HALF_UP);
         }
         if (!count7.equals(BigDecimal.ZERO)) {
-            numberSevenMoney = count.getNumberOneTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
+            numberSevenMoney = count.getNumberSevenTotalMoney().divide(count7, 2, BigDecimal.ROUND_HALF_UP);
         }
-
 
         lotteryResult.setNumberOneMoney(numberOneMoney);
         lotteryResult.setNumberTwoMoney(numberTwoMoney);
@@ -1328,6 +1535,13 @@ public class LotteryService {
         lotteryResult.setNumberSevenMoney(numberSevenMoney);
         lotteryResult.setCreateTime(date);
         lotteryResultDao.save(lotteryResult);
+
+        BigDecimal discount = new BigDecimal("0.8");
+
+        BigDecimal partnerCount = new BigDecimal("0.05");
+        BigDecimal gradeThree = new BigDecimal("0.05");
+        BigDecimal gradeTwo = new BigDecimal("0.03");
+        BigDecimal gradeOne = new BigDecimal("0.07");
 
 
         //记录每个用户中奖金额
@@ -1340,38 +1554,59 @@ public class LotteryService {
                 lotteryRecord.setType(NUMBER);
                 BigDecimal totalMoney = new BigDecimal("0");
 
-                //TODO 查找三级
+                //查找三级
+                Map<String, String> map = this.findGradeByAgencyId(order.getAgencyId());
 
                 //保存三级
                 GradeRecord gradeThreeUser = null;
                 GradeRecord gradeTwoUser = null;
                 GradeRecord gradeOneUser = null;
-                if (map.get("gradeThree") != null && !"".equals(map.get("gradeThree"))){
+
+                GradeRecord partner = null;
+
+                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                    partner = new GradeRecord();
+                    partner.setId(idWorker.nextId() + "");
+                    partner.setPeriod(period);
+                    partner.setAgencyId(order.getAgencyId());
+                    partner.setGrade("partner");
+                    partner.setGradeId(map.get("partnerId"));
+                    partner.setGradeName(map.get("partnerName"));
+                    partner.setType(NUMBER);
+                    partner.setCreateTime(date);
+                }
+                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
                     gradeThreeUser.setAgencyId(order.getAgencyId());
-                    gradeThreeUser.setGrade("gradeThree");
-                    gradeThreeUser.setGradeId(map.get("gradeThree"));
+                    gradeThreeUser.setGrade("gradeThreeUser");
+                    gradeThreeUser.setGradeId(map.get("gradeThreeUser"));
+                    gradeThreeUser.setGradeName(map.get("gradeThreeUserName"));
                     gradeThreeUser.setType(NUMBER);
+                    gradeThreeUser.setCreateTime(date);
                 }
-                if (map.get("gradeTwoUser") != null && !"".equals(map.get("gradeTwoUser"))){
+                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
                     gradeTwoUser.setAgencyId(order.getAgencyId());
                     gradeTwoUser.setGrade("gradeTwoUser");
                     gradeTwoUser.setGradeId(map.get("gradeTwoUser"));
+                    gradeTwoUser.setGradeName(map.get("gradeTwoUserName"));
                     gradeTwoUser.setType(NUMBER);
+                    gradeTwoUser.setCreateTime(date);
                 }
-                if (map.get("gradeOneUser") != null && !"".equals(map.get("gradeOneUser"))){
+                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
                     gradeOneUser.setAgencyId(order.getAgencyId());
                     gradeOneUser.setGrade("gradeOneUser");
                     gradeOneUser.setGradeId(map.get("gradeOneUser"));
+                    gradeOneUser.setGradeName(map.get("gradeOneUserName"));
                     gradeOneUser.setType(NUMBER);
+                    gradeOneUser.setCreateTime(date);
                 }
 
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 == order.getNumberOne()) {
@@ -1389,6 +1624,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberTwo() != null && order.getNumberTwo() != 0 && num2 == order.getNumberTwo()) {
@@ -1405,6 +1644,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1424,6 +1667,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberFour() != null && order.getNumberFour() != 0 && num4 == order.getNumberFour()) {
@@ -1440,6 +1687,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1458,6 +1709,10 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
+                    }
                 }
 
                 if (order.getNumberSix() != null && order.getNumberSix() != 0 && num6 == order.getNumberSix()) {
@@ -1474,6 +1729,10 @@ public class LotteryService {
                     //一级
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
+                    }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
 
@@ -1492,12 +1751,34 @@ public class LotteryService {
                     if(gradeOneUser != null){
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
+                    //总代
+                    if (partner != null){
+                        partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
+                    }
                 }
+                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
                 lotteryRecordDao.save(lotteryRecord);
             }
+        }
+    }
+
+
+    //保存三级
+    private void saveRecord(GradeRecord gradeThreeUser, GradeRecord gradeTwoUser, GradeRecord gradeOneUser,GradeRecord partner) {
+        if (gradeThreeUser != null){
+            gradeRecordDao.save(gradeThreeUser);
+        }
+        if (gradeTwoUser != null){
+            gradeRecordDao.save(gradeTwoUser);
+        }
+        if (gradeOneUser != null){
+            gradeRecordDao.save(gradeOneUser);
+        }
+        if (partner != null){
+            gradeRecordDao.save(partner);
         }
     }
 
@@ -1574,6 +1855,20 @@ public class LotteryService {
 
     }
 
+    //根据id查找三级
+    private Map findGradeByAgencyId(String agencyId){
+        try {
+            HttpClientUtil httpClientUtil = new HttpClientUtil();
+            String result = httpClientUtil.doPost(URL, agencyId, "utf-8");
+            Map<Object,Object> map = JSONObject.parseObject(result, Map.class);
+            //Map<String,String> gradeMap = (Map<String, String>) map.get("data");
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     public List<Lottery> findAllOrderByPeriod() {
         List<Lottery> lotteryList = lotteryDao.findAllOrderByPeriodDesc();
@@ -1589,6 +1884,17 @@ public class LotteryService {
         Lottery lottery = lotteryDao.findLatterLottery();
         return lottery;
     }
+
+    public static String mapGetValue(Map<String,String> map,String key){
+        try {
+            String value = map.get(key);
+            return value;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
 
 }
 

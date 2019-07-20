@@ -39,12 +39,9 @@ public class LotteryController {
     private SimpleDateFormat simpleDateFormat;
 
     //开奖
-    @RequestMapping(value = "/open", method = RequestMethod.POST)
-    @Transactional
-    public Result lottery(@RequestBody Map<String, String> map) {
-        Integer period = Integer.valueOf(map.get("period"));
+    @RequestMapping(value = "/open", method = RequestMethod.GET)
+    public Result lottery(Integer period) {
         try {
-
             Lottery lottery = lotteryService.queryByPeriod(period);
             Date date = new Date();
             if (lottery != null) {
@@ -58,12 +55,13 @@ public class LotteryController {
                 numsSet.add(randomUtils.nextInt(1, 49));
             }
             List<Integer> numsList = new ArrayList<>(numsSet);
-            //保存
-            lotteryService.save(period, numsList, date);
 
             //匹配
             List<Order> orderList = orderService.findAll(null, period);
-            lotteryService.match(period, numsList, orderList, date, map);
+            lotteryService.match(period, numsList, orderList, date);
+
+            //保存
+            lotteryService.save(period, numsList, date);
 
             //统计个人中奖信息
 
