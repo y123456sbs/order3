@@ -64,6 +64,8 @@ public class LotteryController {
             lotteryService.save(period, numsList, date);
 
             //统计个人中奖信息
+            lotteryService.savePersonalRecord(period,orderList,date);
+
 
 
             logger.info(simpleDateFormat.format(new Date()) + "  第" + period + "期开奖成功");

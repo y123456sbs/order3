@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * @ClassName LotteryService
@@ -46,6 +47,12 @@ public class LotteryService {
     @Autowired
     private GradeRecordDao gradeRecordDao;
 
+    @Autowired
+    private PersonalRecordDao personalRecordDao;
+
+    @Autowired
+    private PersonalCountDao personalCountDao;
+
     private static final String NUMBER = "number";
     private static final String ZODIAC = "zodiac";
     private static final String SIZE = "size";
@@ -53,7 +60,6 @@ public class LotteryService {
     private static final String SD = "sd";
 
     private static final String URL = "http://192.168.101.69:8083/data/app/getAgencyInfo";
-
 
 
     /**
@@ -93,21 +99,20 @@ public class LotteryService {
     public void match(Integer period, List<Integer> numsList, List<Order> orderList, Date date) {
 
 
-            //保存号码奖池
-            this.saveNumberLotteryResult(period, numsList, orderList, date);
+        //保存号码奖池
+        this.saveNumberLotteryResult(period, numsList, orderList, date);
 
-            //保存生肖奖池
-            this.saveZodiacLotteryResult(period, numsList, orderList, date);
+        //保存生肖奖池
+        this.saveZodiacLotteryResult(period, numsList, orderList, date);
 
-            //保存颜色奖池 红1 蓝2 绿3
-            this.saveColorLotteryResult(period, numsList, orderList, date);
+        //保存颜色奖池 红1 蓝2 绿3
+        this.saveColorLotteryResult(period, numsList, orderList, date);
 
-            //保存单双奖池 1是双 2是单
-            this.saveSDLotteryResult(period, numsList, orderList, date);
+        //保存单双奖池 1是双 2是单
+        this.saveSDLotteryResult(period, numsList, orderList, date);
 
-            //保存大小奖池 1-24小 26-49大
-            this.saveSizeLotteryResult(period, numsList, orderList, date);
-
+        //保存大小奖池 1-24小 26-49大
+        this.saveSizeLotteryResult(period, numsList, orderList, date);
 
 
     }
@@ -124,7 +129,7 @@ public class LotteryService {
         //奖池结果
         LotteryResult lotteryResult = new LotteryResult();
         lotteryResult.setPeriod(period);
-        lotteryResult.setId(idWorker.nextId()+"");
+        lotteryResult.setId(idWorker.nextId() + "");
         lotteryResult.setNumberOne(num1);
         lotteryResult.setNumberTwo(num2);
         lotteryResult.setNumberThree(num3);
@@ -221,7 +226,6 @@ public class LotteryService {
         BigDecimal gradeOne = new BigDecimal("0.07");
 
 
-
         //记录每个用户中奖金额
         for (Order order : orderList) {
             if (order.getType().equals(ZODIAC)) {
@@ -244,7 +248,7 @@ public class LotteryService {
 
                 GradeRecord partner = null;
 
-                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                if (mapGetValue(map, "partnerId") != null && !"".equals(mapGetValue(map, "partnerId"))) {
                     partner = new GradeRecord();
                     partner.setId(idWorker.nextId() + "");
                     partner.setPeriod(period);
@@ -255,7 +259,7 @@ public class LotteryService {
                     partner.setType(ZODIAC);
                     partner.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
+                if (mapGetValue(map, "gradeThreeUser") != null && !"".equals(mapGetValue(map, "gradeThreeUser"))) {
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
@@ -266,7 +270,7 @@ public class LotteryService {
                     gradeThreeUser.setType(ZODIAC);
                     gradeThreeUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
+                if (mapGetValue(map, "gradeTwoUser") != null && !"".equals(mapGetValue(map, "gradeTwoUser"))) {
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
@@ -277,7 +281,7 @@ public class LotteryService {
                     gradeTwoUser.setType(ZODIAC);
                     gradeTwoUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
+                if (mapGetValue(map, "gradeOneUser") != null && !"".equals(mapGetValue(map, "gradeOneUser"))) {
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
@@ -290,24 +294,23 @@ public class LotteryService {
                 }
 
 
-
                 if (order.getNumberOne() != null && order.getNumberOne() != 0 && this.judgeZodiac(num1) == order.getNumberOne()) {
                     lotteryRecord.setNumberOneMoney(numberOneMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberOneMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberOneMoney(numberOneMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberOneMoney(numberOneMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
 
@@ -317,19 +320,19 @@ public class LotteryService {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberTwoMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
@@ -338,19 +341,19 @@ public class LotteryService {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberThreeMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
@@ -359,19 +362,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFourMoney(numberFourMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFourMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFourMoney(numberFourMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFourMoney(numberFourMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
@@ -380,19 +383,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFiveMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
@@ -401,19 +404,19 @@ public class LotteryService {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSixMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSixMoney(numberSixMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSixMoney(numberSixMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
@@ -422,23 +425,23 @@ public class LotteryService {
                     lotteryRecord.setNumberSevenMoney(numberSevenMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSevenMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
                     }
                 }
-                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+                this.saveRecord(gradeThreeUser, gradeTwoUser, gradeOneUser, partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -459,7 +462,7 @@ public class LotteryService {
         //奖池结果
         LotteryResult lotteryResult = new LotteryResult();
         lotteryResult.setPeriod(period);
-        lotteryResult.setId(idWorker.nextId()+"");
+        lotteryResult.setId(idWorker.nextId() + "");
         lotteryResult.setNumberOne(num1);
         lotteryResult.setNumberTwo(num2);
         lotteryResult.setNumberThree(num3);
@@ -476,8 +479,6 @@ public class LotteryService {
         BigDecimal count5 = new BigDecimal("0");
         BigDecimal count6 = new BigDecimal("0");
         BigDecimal count7 = new BigDecimal("0");
-
-
 
 
         for (Order order : orderList) {
@@ -578,7 +579,7 @@ public class LotteryService {
 
                 GradeRecord partner = null;
 
-                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                if (mapGetValue(map, "partnerId") != null && !"".equals(mapGetValue(map, "partnerId"))) {
                     partner = new GradeRecord();
                     partner.setId(idWorker.nextId() + "");
                     partner.setPeriod(period);
@@ -589,7 +590,7 @@ public class LotteryService {
                     partner.setType(COLOR);
                     partner.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
+                if (mapGetValue(map, "gradeThreeUser") != null && !"".equals(mapGetValue(map, "gradeThreeUser"))) {
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
@@ -600,7 +601,7 @@ public class LotteryService {
                     gradeThreeUser.setType(COLOR);
                     gradeThreeUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
+                if (mapGetValue(map, "gradeTwoUser") != null && !"".equals(mapGetValue(map, "gradeTwoUser"))) {
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
@@ -611,7 +612,7 @@ public class LotteryService {
                     gradeTwoUser.setType(COLOR);
                     gradeTwoUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
+                if (mapGetValue(map, "gradeOneUser") != null && !"".equals(mapGetValue(map, "gradeOneUser"))) {
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
@@ -627,19 +628,19 @@ public class LotteryService {
                     lotteryRecord.setNumberOneMoney(numberOneMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberOneMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberOneMoney(numberOneMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberOneMoney(numberOneMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
                 }
@@ -647,19 +648,19 @@ public class LotteryService {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberTwoMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
@@ -668,19 +669,19 @@ public class LotteryService {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberThreeMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
@@ -689,19 +690,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFourMoney(numberFourMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFourMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFourMoney(numberFourMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFourMoney(numberFourMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
@@ -710,19 +711,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFiveMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
@@ -731,19 +732,19 @@ public class LotteryService {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSixMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSixMoney(numberSixMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSixMoney(numberSixMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
@@ -752,24 +753,24 @@ public class LotteryService {
                     lotteryRecord.setNumberSevenMoney(numberSevenMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSevenMoney).multiply(discount);
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
                     }
                 }
 
-                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+                this.saveRecord(gradeThreeUser, gradeTwoUser, gradeOneUser, partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -789,7 +790,7 @@ public class LotteryService {
         Integer num7 = numsList.get(6);
         //奖池结果
         LotteryResult lotteryResult = new LotteryResult();
-        lotteryResult.setId(idWorker.nextId()+"");
+        lotteryResult.setId(idWorker.nextId() + "");
         lotteryResult.setPeriod(period);
         lotteryResult.setNumberOne(num1);
         lotteryResult.setNumberTwo(num2);
@@ -907,7 +908,7 @@ public class LotteryService {
                 GradeRecord partner = null;
 
 
-                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                if (mapGetValue(map, "partnerId") != null && !"".equals(mapGetValue(map, "partnerId"))) {
                     partner = new GradeRecord();
                     partner.setId(idWorker.nextId() + "");
                     partner.setPeriod(period);
@@ -918,7 +919,7 @@ public class LotteryService {
                     partner.setType(SIZE);
                     partner.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
+                if (mapGetValue(map, "gradeThreeUser") != null && !"".equals(mapGetValue(map, "gradeThreeUser"))) {
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
@@ -929,7 +930,7 @@ public class LotteryService {
                     gradeThreeUser.setType(SIZE);
                     gradeThreeUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
+                if (mapGetValue(map, "gradeTwoUser") != null && !"".equals(mapGetValue(map, "gradeTwoUser"))) {
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
@@ -940,7 +941,7 @@ public class LotteryService {
                     gradeTwoUser.setType(SIZE);
                     gradeTwoUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
+                if (mapGetValue(map, "gradeOneUser") != null && !"".equals(mapGetValue(map, "gradeOneUser"))) {
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
@@ -957,19 +958,19 @@ public class LotteryService {
                     lotteryRecord.setNumberOneMoney(numberOneMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberOneMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberOneMoney(numberOneMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberOneMoney(numberOneMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
                 }
@@ -978,19 +979,19 @@ public class LotteryService {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberTwoMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
@@ -998,19 +999,19 @@ public class LotteryService {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberThreeMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
@@ -1018,19 +1019,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFourMoney(numberFourMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFourMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFourMoney(numberFourMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFourMoney(numberFourMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
@@ -1038,19 +1039,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFiveMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
@@ -1058,19 +1059,19 @@ public class LotteryService {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSixMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSixMoney(numberSixMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSixMoney(numberSixMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
@@ -1079,23 +1080,23 @@ public class LotteryService {
                     lotteryRecord.setNumberSevenMoney(numberSevenMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSevenMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
                     }
                 }
-                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+                this.saveRecord(gradeThreeUser, gradeTwoUser, gradeOneUser, partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -1116,7 +1117,7 @@ public class LotteryService {
         //奖池结果
         LotteryResult lotteryResult = new LotteryResult();
         lotteryResult.setPeriod(period);
-        lotteryResult.setId(idWorker.nextId()+"");
+        lotteryResult.setId(idWorker.nextId() + "");
         lotteryResult.setNumberOne(num1);
         lotteryResult.setNumberTwo(num2);
         lotteryResult.setNumberThree(num3);
@@ -1213,7 +1214,6 @@ public class LotteryService {
         BigDecimal gradeOne = new BigDecimal("0.07");
 
 
-
         //记录每个用户中奖金额
         for (Order order : orderList) {
             if (order.getType().equals(SD)) {
@@ -1233,7 +1233,7 @@ public class LotteryService {
                 GradeRecord gradeOneUser = null;
                 GradeRecord partner = null;
 
-                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                if (mapGetValue(map, "partnerId") != null && !"".equals(mapGetValue(map, "partnerId"))) {
                     partner = new GradeRecord();
                     partner.setId(idWorker.nextId() + "");
                     partner.setPeriod(period);
@@ -1244,7 +1244,7 @@ public class LotteryService {
                     partner.setType(SD);
                     partner.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
+                if (mapGetValue(map, "gradeThreeUser") != null && !"".equals(mapGetValue(map, "gradeThreeUser"))) {
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
@@ -1255,7 +1255,7 @@ public class LotteryService {
                     gradeThreeUser.setType(SD);
                     gradeThreeUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
+                if (mapGetValue(map, "gradeTwoUser") != null && !"".equals(mapGetValue(map, "gradeTwoUser"))) {
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
@@ -1266,7 +1266,7 @@ public class LotteryService {
                     gradeTwoUser.setType(SD);
                     gradeTwoUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
+                if (mapGetValue(map, "gradeOneUser") != null && !"".equals(mapGetValue(map, "gradeOneUser"))) {
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
@@ -1278,23 +1278,23 @@ public class LotteryService {
                     gradeOneUser.setCreateTime(date);
                 }
 
-                if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 % 2 + 1== order.getNumberOne() && num1 != 49) {
+                if (order.getNumberOne() != null && order.getNumberOne() != 0 && num1 % 2 + 1 == order.getNumberOne() && num1 != 49) {
                     lotteryRecord.setNumberOneMoney(numberOneMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberOneMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberOneMoney(numberOneMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberOneMoney(numberOneMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
                 }
@@ -1303,19 +1303,19 @@ public class LotteryService {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberTwoMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
@@ -1324,107 +1324,107 @@ public class LotteryService {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberThreeMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
 
-                if (order.getNumberFour() != null && order.getNumberFour() != 0 && num4 % 2 + 1== order.getNumberFour() && num4 != 49) {
+                if (order.getNumberFour() != null && order.getNumberFour() != 0 && num4 % 2 + 1 == order.getNumberFour() && num4 != 49) {
                     lotteryRecord.setNumberFourMoney(numberFourMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFourMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFourMoney(numberFourMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFourMoney(numberFourMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
 
-                if (order.getNumberFive() != null && order.getNumberFive() != 0 && num5 % 2 + 1== order.getNumberFive() && num5 != 49) {
+                if (order.getNumberFive() != null && order.getNumberFive() != 0 && num5 % 2 + 1 == order.getNumberFive() && num5 != 49) {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFiveMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
 
-                if (order.getNumberSix() != null && order.getNumberSix() != 0 && num6 % 2 + 1== order.getNumberSix() && num6 != 49) {
+                if (order.getNumberSix() != null && order.getNumberSix() != 0 && num6 % 2 + 1 == order.getNumberSix() && num6 != 49) {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSixMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSixMoney(numberSixMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSixMoney(numberSixMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
 
-                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && num7 % 2 + 1== order.getNumberSeven() && num7 != 49) {
+                if (order.getNumberSeven() != null && order.getNumberSeven() != 0 && num7 % 2 + 1 == order.getNumberSeven() && num7 != 49) {
                     lotteryRecord.setNumberSevenMoney(numberSevenMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSevenMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
                     }
                 }
-                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+                this.saveRecord(gradeThreeUser, gradeTwoUser, gradeOneUser, partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -1446,7 +1446,7 @@ public class LotteryService {
         //奖池结果
         LotteryResult lotteryResult = new LotteryResult();
         lotteryResult.setPeriod(period);
-        lotteryResult.setId(idWorker.nextId()+"");
+        lotteryResult.setId(idWorker.nextId() + "");
         lotteryResult.setNumberOne(num1);
         lotteryResult.setNumberTwo(num2);
         lotteryResult.setNumberThree(num3);
@@ -1464,7 +1464,6 @@ public class LotteryService {
         BigDecimal count5 = new BigDecimal("0");
         BigDecimal count6 = new BigDecimal("0");
         BigDecimal count7 = new BigDecimal("0");
-
 
 
         for (Order order : orderList) {
@@ -1564,7 +1563,7 @@ public class LotteryService {
 
                 GradeRecord partner = null;
 
-                if (mapGetValue(map,"partnerId") != null && !"".equals(mapGetValue(map,"partnerId"))){
+                if (mapGetValue(map, "partnerId") != null && !"".equals(mapGetValue(map, "partnerId"))) {
                     partner = new GradeRecord();
                     partner.setId(idWorker.nextId() + "");
                     partner.setPeriod(period);
@@ -1575,7 +1574,7 @@ public class LotteryService {
                     partner.setType(NUMBER);
                     partner.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeThreeUser") != null && !"".equals(mapGetValue(map,"gradeThreeUser"))){
+                if (mapGetValue(map, "gradeThreeUser") != null && !"".equals(mapGetValue(map, "gradeThreeUser"))) {
                     gradeThreeUser = new GradeRecord();
                     gradeThreeUser.setId(idWorker.nextId() + "");
                     gradeThreeUser.setPeriod(period);
@@ -1586,7 +1585,7 @@ public class LotteryService {
                     gradeThreeUser.setType(NUMBER);
                     gradeThreeUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeTwoUser") != null && !"".equals(mapGetValue(map,"gradeTwoUser"))){
+                if (mapGetValue(map, "gradeTwoUser") != null && !"".equals(mapGetValue(map, "gradeTwoUser"))) {
                     gradeTwoUser = new GradeRecord();
                     gradeTwoUser.setId(idWorker.nextId() + "");
                     gradeTwoUser.setPeriod(period);
@@ -1597,7 +1596,7 @@ public class LotteryService {
                     gradeTwoUser.setType(NUMBER);
                     gradeTwoUser.setCreateTime(date);
                 }
-                if (mapGetValue(map,"gradeOneUser")!= null && !"".equals(mapGetValue(map,"gradeOneUser"))){
+                if (mapGetValue(map, "gradeOneUser") != null && !"".equals(mapGetValue(map, "gradeOneUser"))) {
                     gradeOneUser = new GradeRecord();
                     gradeOneUser.setId(idWorker.nextId() + "");
                     gradeOneUser.setPeriod(period);
@@ -1613,19 +1612,19 @@ public class LotteryService {
                     lotteryRecord.setNumberOneMoney(numberOneMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberOneMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberOneMoney(numberOneMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberOneMoney(numberOneMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberOneMoney(numberOneMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberOneMoney(numberOneMoney.multiply(partnerCount));
                     }
                 }
@@ -1634,19 +1633,19 @@ public class LotteryService {
                     lotteryRecord.setNumberTwoMoney(numberTwoMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberTwoMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberTwoMoney(numberTwoMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberTwoMoney(numberTwoMoney.multiply(partnerCount));
                     }
                 }
@@ -1656,19 +1655,19 @@ public class LotteryService {
                     lotteryRecord.setNumberThreeMoney(numberThreeMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberThreeMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberThreeMoney(numberThreeMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberThreeMoney(numberThreeMoney.multiply(partnerCount));
                     }
                 }
@@ -1677,19 +1676,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFourMoney(numberFourMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFourMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFourMoney(numberFourMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFourMoney(numberFourMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFourMoney(numberFourMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFourMoney(numberFourMoney.multiply(partnerCount));
                     }
                 }
@@ -1698,19 +1697,19 @@ public class LotteryService {
                     lotteryRecord.setNumberFiveMoney(numberFiveMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberFiveMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberFiveMoney(numberFiveMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberFiveMoney(numberFiveMoney.multiply(partnerCount));
                     }
                 }
@@ -1719,19 +1718,19 @@ public class LotteryService {
                     lotteryRecord.setNumberSixMoney(numberSixMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSixMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSixMoney(numberSixMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSixMoney(numberSixMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSixMoney(numberSixMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSixMoney(numberSixMoney.multiply(partnerCount));
                     }
                 }
@@ -1740,23 +1739,23 @@ public class LotteryService {
                     lotteryRecord.setNumberSevenMoney(numberSevenMoney.multiply(discount));
                     totalMoney = totalMoney.add(numberSevenMoney.multiply(discount));
                     //三级
-                    if(gradeThreeUser != null){
+                    if (gradeThreeUser != null) {
                         gradeThreeUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeThree));
                     }
                     //二级
-                    if(gradeTwoUser != null){
+                    if (gradeTwoUser != null) {
                         gradeTwoUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeTwo));
                     }
                     //一级
-                    if(gradeOneUser != null){
+                    if (gradeOneUser != null) {
                         gradeOneUser.setNumberSevenMoney(numberSevenMoney.multiply(gradeOne));
                     }
                     //总代
-                    if (partner != null){
+                    if (partner != null) {
                         partner.setNumberSevenMoney(numberSevenMoney.multiply(partnerCount));
                     }
                 }
-                this.saveRecord(gradeThreeUser,gradeTwoUser,gradeOneUser,partner);
+                this.saveRecord(gradeThreeUser, gradeTwoUser, gradeOneUser, partner);
 
                 lotteryRecord.setTotalMoney(totalMoney);
                 lotteryRecord.setCreateTime(date);
@@ -1767,17 +1766,17 @@ public class LotteryService {
 
 
     //保存三级
-    private void saveRecord(GradeRecord gradeThreeUser, GradeRecord gradeTwoUser, GradeRecord gradeOneUser,GradeRecord partner) {
-        if (gradeThreeUser != null){
+    private void saveRecord(GradeRecord gradeThreeUser, GradeRecord gradeTwoUser, GradeRecord gradeOneUser, GradeRecord partner) {
+        if (gradeThreeUser != null) {
             gradeRecordDao.save(gradeThreeUser);
         }
-        if (gradeTwoUser != null){
+        if (gradeTwoUser != null) {
             gradeRecordDao.save(gradeTwoUser);
         }
-        if (gradeOneUser != null){
+        if (gradeOneUser != null) {
             gradeRecordDao.save(gradeOneUser);
         }
-        if (partner != null){
+        if (partner != null) {
             gradeRecordDao.save(partner);
         }
     }
@@ -1839,9 +1838,9 @@ public class LotteryService {
     }
 
     private Integer judgeColor(Integer num) {
-        Integer[] red = {1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46}; //红
-        Integer[] blue = {3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48}; //蓝
-        Integer[] green = {5,6,11,16,17,21,22,27,28,32,33,38,39,43,44,49}; //绿
+        Integer[] red = {1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46}; //红
+        Integer[] blue = {3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48}; //蓝
+        Integer[] green = {5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49}; //绿
 
         if (ArrayUtils.contains(red, num)) {
             return 1;
@@ -1856,11 +1855,11 @@ public class LotteryService {
     }
 
     //根据id查找三级
-    private Map findGradeByAgencyId(String agencyId){
+    private Map findGradeByAgencyId(String agencyId) {
         try {
             HttpClientUtil httpClientUtil = new HttpClientUtil();
             String result = httpClientUtil.doPost(URL, agencyId, "utf-8");
-            Map<Object,Object> map = JSONObject.parseObject(result, Map.class);
+            Map<Object, Object> map = JSONObject.parseObject(result, Map.class);
             //Map<String,String> gradeMap = (Map<String, String>) map.get("data");
             return map;
         } catch (Exception e) {
@@ -1885,7 +1884,7 @@ public class LotteryService {
         return lottery;
     }
 
-    public static String mapGetValue(Map<String,String> map,String key){
+    public static String mapGetValue(Map<String, String> map, String key) {
         try {
             String value = map.get(key);
             return value;
@@ -1894,7 +1893,329 @@ public class LotteryService {
         }
     }
 
+    //统计每个人的中奖金额
+    public void savePersonalRecord(Integer period, List<Order> orderList, Date date) {
+        for (Order order : orderList) {
+            String agencyId = order.getAgencyId();
+            String type = order.getType();
+
+            //查找个人中奖金额
+            LotteryRecord record = lotteryRecordDao.findByAgencyIdAndPeriodAndType(agencyId, period, type);
+
+            //获得下级分润
+            List<GradeRecord> gradeRecordList = gradeRecordDao.findByGradeIdAndTypeAndPeriod(agencyId, type, period);
 
 
+            //遍历下级分润
+            for (GradeRecord gradeRecord : gradeRecordList) {
+                PersonalRecord personalRecord = this.judgeGrade(order, record, gradeRecord, period, agencyId, date);
+                //更新个人中奖总额
+                this.updatePersonalCount(personalRecord,agencyId,date);
+
+            }
+
+
+
+
+        }
+    }
+
+    //更新个人中奖总额
+    private void updatePersonalCount(PersonalRecord personalRecord, String agencyId,Date date) {
+        PersonalCount personalCount = null;
+        try {
+            personalCount = personalCountDao.findById(agencyId).get();
+        } catch (NoSuchElementException e) {
+            personalCount = new PersonalCount();
+            personalCount.setAgencyId(agencyId);
+            personalCount.setCreateTime(date);
+            personalCount.setTotalMoney(new BigDecimal("0"));
+            personalCount.setTotalMoney(new BigDecimal("0"));
+            personalCount.setTotalMoney(new BigDecimal("0"));
+        }
+        //TODO
+
+
+    }
+
+    private PersonalRecord judgeGrade(Order order, LotteryRecord record, GradeRecord gradeRecord, Integer period, String agencyId, Date date) {
+        //获得个人下注号码
+        Integer numberOne = order.getNumberOne();
+        Integer numberTwo = order.getNumberTwo();
+        Integer numberThree = order.getNumberThree();
+        Integer numberFour = order.getNumberFour();
+        Integer numberFive = order.getNumberFive();
+        Integer numberSix = order.getNumberSix();
+        Integer numberSeven = order.getNumberSeven();
+
+        //获取个人中奖金额
+        BigDecimal numberOneMoney = record.getNumberOneMoney();
+        if (numberOneMoney == null) {
+            numberOneMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberTwoMoney = record.getNumberTwoMoney();
+        if (numberTwoMoney == null) {
+            numberTwoMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberThreeMoney = record.getNumberThreeMoney();
+        if (numberThreeMoney == null) {
+            numberThreeMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberFourMoney = record.getNumberFourMoney();
+        if (numberFourMoney == null) {
+            numberFourMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberFiveMoney = record.getNumberFiveMoney();
+        if (numberFiveMoney == null) {
+            numberFiveMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberSixMoney = record.getNumberSixMoney();
+        if (numberSixMoney == null) {
+            numberSixMoney = new BigDecimal("0");
+        }
+
+        BigDecimal numberSevenMoney = record.getNumberSevenMoney();
+        if (numberSevenMoney == null) {
+            numberSevenMoney = new BigDecimal("0");
+        }
+        //获得下级
+        String gradeName = gradeRecord.getGradeName();
+
+        String grade = null;
+        if ("gradeThreeUser".equals(gradeName)) {
+            grade = "gradeOne";
+        } else if ("gradeTwoUser".equals(gradeName)) {
+            grade = "gradeTwo";
+        } else if ("gradeThreeUser".equals(gradeName)) {
+            grade = "gradeOne";
+        }
+
+        //根据下级级别，获得下级个人分润记录
+        PersonalRecord personalRecord = personalRecordDao.findByGradeAndPeriodAndAgencyId(grade, period, agencyId);
+        //记录不为空
+        if (personalRecord != null) {
+            //判断是否有分润以及是否下注
+            //1号
+            if (gradeRecord.getNumberOneMoney() != null) {
+                //有分润，
+                numberOneMoney = numberOneMoney.add(gradeRecord.getNumberOneMoney());
+                if (numberOne != 0) { //该类型有下注
+                    personalRecord.setNumberOneTotalMoney(personalRecord.getNumberOneTotalMoney().add(numberOneMoney));
+                } else if (numberOne == 0) { //该类型没下注
+                    personalRecord.setNumberOneCnTotalMoney(personalRecord.getNumberOneCnTotalMoney().add(numberOneMoney));
+                }
+            }
+
+            //2号
+            if (gradeRecord.getNumberTwoMoney() != null) {
+                //有分润，
+                numberTwoMoney = numberTwoMoney.add(gradeRecord.getNumberTwoMoney());
+                if (numberTwo != 0) { //该类型有下注
+                    personalRecord.setNumberTwoTotalMoney(personalRecord.getNumberTwoTotalMoney().add(numberTwoMoney));
+                } else if (numberTwo == 0) { //该类型没下注
+                    personalRecord.setNumberTwoCnTotalMoney(personalRecord.getNumberTwoCnTotalMoney().add(numberTwoMoney));
+                }
+            }
+
+            //3号
+            if (gradeRecord.getNumberThreeMoney() != null) {
+                //有分润，
+                numberThreeMoney = numberThreeMoney.add(gradeRecord.getNumberThreeMoney());
+                if (numberThree != 0) { //该类型有下注
+                    personalRecord.setNumberThreeTotalMoney(personalRecord.getNumberThreeTotalMoney().add(numberThreeMoney));
+                } else if (numberThree == 0) { //该类型没下注
+                    personalRecord.setNumberThreeCnTotalMoney(personalRecord.getNumberThreeCnTotalMoney().add(numberThreeMoney));
+                }
+            }
+
+            //4号
+            if (gradeRecord.getNumberFourMoney() != null) {
+                //有分润，
+                numberFourMoney = numberFourMoney.add(gradeRecord.getNumberFourMoney());
+                if (numberFour != 0) { //该类型有下注
+                    personalRecord.setNumberFourTotalMoney(personalRecord.getNumberFourTotalMoney().add(numberFourMoney));
+                } else if (numberFour == 0) { //该类型没下注
+                    personalRecord.setNumberFourCnTotalMoney(personalRecord.getNumberFourCnTotalMoney().add(numberFourMoney));
+                }
+            }
+
+            //5号
+            if (gradeRecord.getNumberFiveMoney() != null) {
+                //有分润，
+                numberFiveMoney = numberFiveMoney.add(gradeRecord.getNumberFiveMoney());
+                if (numberFive != 0) { //该类型有下注
+                    personalRecord.setNumberFiveTotalMoney(personalRecord.getNumberFiveTotalMoney().add(numberFiveMoney));
+                } else if (numberFive == 0) { //该类型没下注
+                    personalRecord.setNumberFiveCnTotalMoney(personalRecord.getNumberFiveCnTotalMoney().add(numberFiveMoney));
+                }
+            }
+
+            //6号
+            if (gradeRecord.getNumberSixMoney() != null) {
+                //有分润，
+                numberSixMoney = numberSixMoney.add(gradeRecord.getNumberSixMoney());
+                if (numberSix != 0) { //该类型有下注
+                    personalRecord.setNumberSixTotalMoney(personalRecord.getNumberSixTotalMoney().add(numberSixMoney));
+                } else if (numberSix == 0) { //该类型没下注
+                    personalRecord.setNumberSixCnTotalMoney(personalRecord.getNumberSixCnTotalMoney().add(numberSixMoney));
+                }
+            }
+
+            //7号
+            if (gradeRecord.getNumberSevenMoney() != null) {
+                //有分润，
+                numberSevenMoney = numberSevenMoney.add(gradeRecord.getNumberSevenMoney());
+                if (numberSeven != 0) { //该类型有下注
+                    personalRecord.setNumberSevenTotalMoney(personalRecord.getNumberSevenTotalMoney().add(numberSevenMoney));
+                } else if (numberSeven == 0) { //该类型没下注
+                    personalRecord.setNumberSevenCnTotalMoney(personalRecord.getNumberSevenCnTotalMoney().add(numberSevenMoney));
+                }
+            }
+
+            //计算非可提总额
+            BigDecimal cnMoney = personalRecord.getTotalCnMoney();
+            cnMoney = cnMoney.add(personalRecord.getNumberOneCnTotalMoney())
+                    .add(personalRecord.getNumberTwoCnTotalMoney())
+                    .add(personalRecord.getNumberThreeCnTotalMoney())
+                    .add(personalRecord.getNumberFourCnTotalMoney())
+                    .add(personalRecord.getNumberFiveCnTotalMoney())
+                    .add(personalRecord.getNumberSixCnTotalMoney())
+                    .add(personalRecord.getNumberSevenCnTotalMoney());
+            personalRecord.setTotalCnMoney(cnMoney);
+
+            //计算可提金额总额
+            BigDecimal totalMoney = personalRecord.getTotalMoney();
+            totalMoney = totalMoney.add(personalRecord.getNumberOneTotalMoney())
+                    .add(personalRecord.getNumberTwoTotalMoney())
+                    .add(personalRecord.getNumberThreeTotalMoney())
+                    .add(personalRecord.getNumberFourTotalMoney())
+                    .add(personalRecord.getNumberFiveTotalMoney())
+                    .add(personalRecord.getNumberSixTotalMoney())
+                    .add(personalRecord.getNumberSevenTotalMoney());
+            personalRecord.setTotalMoney(totalMoney);
+
+            personalRecordDao.save(personalRecord);
+
+            return personalRecord;
+
+        }
+        else { //记录为空
+            personalRecord = new PersonalRecord();
+            personalRecord.setId(idWorker.nextId()+"");
+            personalRecord.setAgencyId(agencyId);
+            personalRecord.setPeriod(period);
+            personalRecord.setGrade(grade);
+            personalRecord.setCreateTime(date);
+
+            //判断是否有分润以及是否下注
+            //1号
+            if (gradeRecord.getNumberOneMoney() != null) {
+                //有分润，
+                numberOneMoney = numberOneMoney.add(gradeRecord.getNumberOneMoney());
+                if (numberOne != 0) { //该类型有下注
+                    personalRecord.setNumberOneTotalMoney(personalRecord.getNumberOneTotalMoney().add(numberOneMoney));
+                } else if (numberOne == 0) { //该类型没下注
+                    personalRecord.setNumberOneCnTotalMoney(personalRecord.getNumberOneCnTotalMoney().add(numberOneMoney));
+                }
+            }
+
+            //2号
+            if (gradeRecord.getNumberTwoMoney() != null) {
+                //有分润，
+                numberTwoMoney = numberTwoMoney.add(gradeRecord.getNumberTwoMoney());
+                if (numberTwo != 0) { //该类型有下注
+                    personalRecord.setNumberTwoTotalMoney(personalRecord.getNumberTwoTotalMoney().add(numberTwoMoney));
+                } else if (numberTwo == 0) { //该类型没下注
+                    personalRecord.setNumberTwoCnTotalMoney(personalRecord.getNumberTwoCnTotalMoney().add(numberTwoMoney));
+                }
+            }
+
+            //3号
+            if (gradeRecord.getNumberThreeMoney() != null) {
+                //有分润，
+                numberThreeMoney = numberThreeMoney.add(gradeRecord.getNumberThreeMoney());
+                if (numberThree != 0) { //该类型有下注
+                    personalRecord.setNumberThreeTotalMoney(personalRecord.getNumberThreeTotalMoney().add(numberThreeMoney));
+                } else if (numberThree == 0) { //该类型没下注
+                    personalRecord.setNumberThreeCnTotalMoney(personalRecord.getNumberThreeCnTotalMoney().add(numberThreeMoney));
+                }
+            }
+
+            //4号
+            if (gradeRecord.getNumberFourMoney() != null) {
+                //有分润，
+                numberFourMoney = numberFourMoney.add(gradeRecord.getNumberFourMoney());
+                if (numberFour != 0) { //该类型有下注
+                    personalRecord.setNumberFourTotalMoney(personalRecord.getNumberFourTotalMoney().add(numberFourMoney));
+                } else if (numberFour == 0) { //该类型没下注
+                    personalRecord.setNumberFourCnTotalMoney(personalRecord.getNumberFourCnTotalMoney().add(numberFourMoney));
+                }
+            }
+
+            //5号
+            if (gradeRecord.getNumberFiveMoney() != null) {
+                //有分润，
+                numberFiveMoney = numberFiveMoney.add(gradeRecord.getNumberFiveMoney());
+                if (numberFive != 0) { //该类型有下注
+                    personalRecord.setNumberFiveTotalMoney(personalRecord.getNumberFiveTotalMoney().add(numberFiveMoney));
+                } else if (numberFive == 0) { //该类型没下注
+                    personalRecord.setNumberFiveCnTotalMoney(personalRecord.getNumberFiveCnTotalMoney().add(numberFiveMoney));
+                }
+            }
+
+            //6号
+            if (gradeRecord.getNumberSixMoney() != null) {
+                //有分润，
+                numberSixMoney = numberSixMoney.add(gradeRecord.getNumberSixMoney());
+                if (numberSix != 0) { //该类型有下注
+                    personalRecord.setNumberSixTotalMoney(personalRecord.getNumberSixTotalMoney().add(numberSixMoney));
+                } else if (numberSix == 0) { //该类型没下注
+                    personalRecord.setNumberSixCnTotalMoney(personalRecord.getNumberSixCnTotalMoney().add(numberSixMoney));
+                }
+            }
+
+            //7号
+            if (gradeRecord.getNumberSevenMoney() != null) {
+                //有分润，
+                numberSevenMoney = numberSevenMoney.add(gradeRecord.getNumberSevenMoney());
+                if (numberSeven != 0) { //该类型有下注
+                    personalRecord.setNumberSevenTotalMoney(personalRecord.getNumberSevenTotalMoney().add(numberSevenMoney));
+                } else if (numberSeven == 0) { //该类型没下注
+                    personalRecord.setNumberSevenCnTotalMoney(personalRecord.getNumberSevenCnTotalMoney().add(numberSevenMoney));
+                }
+            }
+
+            //计算非可提总额
+            BigDecimal cnMoney = new BigDecimal("0");
+            cnMoney = cnMoney.add(personalRecord.getNumberOneCnTotalMoney())
+                    .add(personalRecord.getNumberTwoCnTotalMoney())
+                    .add(personalRecord.getNumberThreeCnTotalMoney())
+                    .add(personalRecord.getNumberFourCnTotalMoney())
+                    .add(personalRecord.getNumberFiveCnTotalMoney())
+                    .add(personalRecord.getNumberSixCnTotalMoney())
+                    .add(personalRecord.getNumberSevenCnTotalMoney());
+            personalRecord.setTotalCnMoney(cnMoney);
+
+            //计算可提金额总额
+            BigDecimal totalMoney = new BigDecimal("0");
+            totalMoney = totalMoney.add(personalRecord.getNumberOneTotalMoney())
+                    .add(personalRecord.getNumberTwoTotalMoney())
+                    .add(personalRecord.getNumberThreeTotalMoney())
+                    .add(personalRecord.getNumberFourTotalMoney())
+                    .add(personalRecord.getNumberFiveTotalMoney())
+                    .add(personalRecord.getNumberSixTotalMoney())
+                    .add(personalRecord.getNumberSevenTotalMoney());
+            personalRecord.setTotalMoney(totalMoney);
+
+            personalRecordDao.save(personalRecord);
+
+            return personalRecord;
+        }
+    }
 }
 

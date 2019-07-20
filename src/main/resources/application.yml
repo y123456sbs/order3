@@ -11,5 +11,5 @@ spring:
     password: root
   jpa:
     database: MySQL
-    show-sql: true
+    show-sql: false
     generate-ddl: true

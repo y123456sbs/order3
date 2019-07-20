@@ -169,4 +169,6 @@ public class LotteryRecord {
     public void setTotalMoney(BigDecimal totalMoney) {
         this.totalMoney = totalMoney;
     }
+
+
 }
