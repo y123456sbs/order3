@@ -7,10 +7,12 @@ import com.b4pay.order.entity.StatusCode;
 import com.b4pay.order.service.LotteryService;
 import com.b4pay.order.service.OrderService;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
@@ -38,8 +40,11 @@ public class LotteryController {
     @Autowired
     private SimpleDateFormat simpleDateFormat;
 
+
+
     //开奖
     @RequestMapping(value = "/open", method = RequestMethod.GET)
+    @Transactional(rollbackFor = Exception.class)
     public Result lottery(Integer period) {
         try {
             Lottery lottery = lotteryService.queryByPeriod(period);
@@ -66,13 +71,12 @@ public class LotteryController {
             //统计个人中奖信息
             lotteryService.savePersonalRecord(period,orderList,date);
 
-
-
             logger.info(simpleDateFormat.format(new Date()) + "  第" + period + "期开奖成功");
             return new Result(true, StatusCode.OK, "第" + period + "期开奖成功");
         } catch (Exception e) {
             logger.error(simpleDateFormat.format(new Date()) + "  第" + period + "期开奖失败" + e.getMessage());
             e.printStackTrace();
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new Result(false, StatusCode.ERROR, "第" + period + "期开奖失败");
         }
 

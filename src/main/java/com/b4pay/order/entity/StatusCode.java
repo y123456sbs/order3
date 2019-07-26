@@ -12,5 +12,6 @@ public class StatusCode {
     public static final Integer REMOTE_ERROR = 20004;//远程调用失败
     public static final Integer REPEATE_ERROR = 20005;//重复操作
     public static final Integer ZERO = 20006;//条件不能为空
+    public static final Integer REPEAT = 20007;//成功
 
 }

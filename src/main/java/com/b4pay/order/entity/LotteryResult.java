@@ -1,6 +1,8 @@
 package com.b4pay.order.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,7 +17,7 @@ import java.util.Date;
  * @Version 2.1
  **/
 @Entity
-@Table(name = "dst_lotteryResult")
+@Table(name = "dst_lottery_result")
 public class LotteryResult implements Serializable {
 
     @Id
@@ -51,7 +53,8 @@ public class LotteryResult implements Serializable {
 
     private BigDecimal numberSevenMoney;
 
-    //@JSONField(format="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     private String type;

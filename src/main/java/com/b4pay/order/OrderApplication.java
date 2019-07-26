@@ -4,10 +4,12 @@ import com.b4pay.order.utils.IdWorker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.text.SimpleDateFormat;
 
 @SpringBootApplication
+@EnableScheduling
 public class OrderApplication {
 
 

@@ -1,10 +1,13 @@
 package com.b4pay.order.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -15,7 +18,7 @@ import java.util.Date;
  **/
 @Entity
 @Table(name = "dst_lotteryRecord")
-public class LotteryRecord {
+public class LotteryRecord implements Serializable {
 
     @Id
     private String id;
@@ -40,7 +43,12 @@ public class LotteryRecord {
 
     private BigDecimal totalMoney;
 
-    //@JSONField(format="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private Date orderTime;
+
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     private String type;
@@ -50,7 +58,7 @@ public class LotteryRecord {
     }
 
 
-    public LotteryRecord(String id, Integer period, String agencyId, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date createTime, String type) {
+    public LotteryRecord(String id, Integer period, String agencyId, BigDecimal numberOneMoney, BigDecimal numberTwoMoney, BigDecimal numberThreeMoney, BigDecimal numberFourMoney, BigDecimal numberFiveMoney, BigDecimal numberSixMoney, BigDecimal numberSevenMoney, BigDecimal totalMoney, Date orderTime, Date createTime, String type) {
         this.id = id;
         this.period = period;
         this.agencyId = agencyId;
@@ -62,8 +70,17 @@ public class LotteryRecord {
         this.numberSixMoney = numberSixMoney;
         this.numberSevenMoney = numberSevenMoney;
         this.totalMoney = totalMoney;
+        this.orderTime = orderTime;
         this.createTime = createTime;
         this.type = type;
+    }
+
+    public Date getOrderTime() {
+        return orderTime;
+    }
+
+    public void setOrderTime(Date orderTime) {
+        this.orderTime = orderTime;
     }
 
     public String getType() {

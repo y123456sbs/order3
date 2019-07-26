@@ -1,5 +1,8 @@
 package com.b4pay.order.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -25,6 +28,8 @@ public class PersonalCount {
 
     private BigDecimal countMoney;
 
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     public PersonalCount(String agencyId, BigDecimal cnMoney, BigDecimal totalMoney, BigDecimal countMoney, Date createTime) {

@@ -1,8 +1,10 @@
 package com.b4pay.order.service;
 
 import com.b4pay.order.dao.CountDao;
+import com.b4pay.order.dao.LotteryStatusDao;
 import com.b4pay.order.dao.OrderDao;
 import com.b4pay.order.entity.Count;
+import com.b4pay.order.entity.LotteryStatus;
 import com.b4pay.order.entity.Order;
 import com.b4pay.order.utils.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * @ClassName OrderService
@@ -37,6 +40,10 @@ public class OrderService {
 
     @Autowired
     private CountDao countDao;
+
+    @Autowired
+    private LotteryStatusDao lotteryStatusDao;
+
 
     private static final String NUMBER = "number";
     private static final String ZODIAC = "zodiac";
@@ -57,6 +64,18 @@ public class OrderService {
      */
     public Order findById(String id) {
         return orderDao.findById(id).get();
+    }
+
+    public LotteryStatus findStatusByPeriod(Integer period) {
+        LotteryStatus lotteryStatus = null;
+        try {
+            lotteryStatus = lotteryStatusDao.findById(period).get();
+        } catch (NoSuchElementException e) {
+            return null;
+        } catch (Exception e){
+            throw new RuntimeException();
+        }
+        return lotteryStatus;
     }
 
     /**
@@ -100,6 +119,7 @@ public class OrderService {
     /**
      * 修改
      */
+    @Transactional
     public void update(Order order) {  // 必须包含数据库存在的ID
         orderDao.save(order);
     }
@@ -249,7 +269,7 @@ public class OrderService {
             }
         }
 
-        Count count = countDao.queryByPeriod(period, type);
+        Count count = countDao.findByPeriodAndType(period, type);
 
         String id = idWorker.nextId() + "";
         //存在，更新
@@ -280,5 +300,18 @@ public class OrderService {
             count.setType(type);
             countDao.save(count);
         }
+    }
+
+    @Transactional
+    public void saveLotteryStatus(LotteryStatus lotteryStatus) {
+        lotteryStatusDao.save(lotteryStatus);
+    }
+
+    @Transactional
+    public void updateLotteryStatus(Integer period) {
+        LotteryStatus lotteryStatus = lotteryStatusDao.findById(period).get();
+        lotteryStatus.setStatus("close");
+        lotteryStatus.setUpdateTime(new Date());
+        lotteryStatusDao.save(lotteryStatus);
     }
 }
